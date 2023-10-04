@@ -130,3 +130,5 @@ new_state_year_panel
 new_state_year_panel[is.na(new_state_year_panel)] <- 0
 
 write.csv(new_state_year_panel, "new_state_year_panel.csv", row.names = TRUE)
+
+view(new_state_year_panel)

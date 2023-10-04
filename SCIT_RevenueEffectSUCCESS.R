@@ -86,3 +86,5 @@ ggdid(agg.gs)
 agg.ct <-aggte(example_attgt,type="calendar")
 summary(agg.ct)
 ggdid(agg.ct)
+
+
