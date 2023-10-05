@@ -21,18 +21,20 @@ App_clean <- My_app %>% filter(Year >=1985,Year <=2023)
 #Convert All Columns to Numeric
 App_cleanNum <- App_clean %>% mutate_if(is.character, as.numeric)
 
-
-
 #convert Apportionment Ratios to numbers like Giroud
-Num_app <- App_clean %>%
-  mutate(across(-Year,~ifelse(is.numeric(.),.*100,.)))
+Num_App3 <- App_cleanNum %>%
+    mutate(across(!Year,~.*100))
 
-#check Alabama Column
-is.numeric(Num_App2$Alabama)
-Num_App2 <-transform(Num_app,Alabama=as.numeric(Alabama))
+#round to 2 Decimal Places
+round_App2 <-round(round_App,digits = 2)
 
-Num_App2$Alabama <- Num_App2$Alabama * 100
+#Replace Sales factor weight 33.33 with 33.34 to match Giroud
+match_round <- round_App2 %>%
+  mutate(across(everything(), ~ifelse(. == 33.33, 33.34, .)))
 
-#In morning, try and figure out what happened to the original weights from My_app
+#SaveCleaned Wide table
+write.csv(match_round,file="My_App_Wide.csv",row.names=FALSE)
+
+
 
 
