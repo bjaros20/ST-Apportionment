@@ -124,9 +124,9 @@ ggplot(Annual_Avg, aes(x = year, y = meanSales)) +
 #Integrate Simple Average to overlay over all other regions:
 merged_AA <- merge(by_region_year2,Annual_Avg, by= c("year"))
 
-
-
 merge_AA_br2 <- rbind(by_region_year2,Annual_Avg2)
+
+merge_AA_br2$Region[is.na(merge_AA_br2$Region)] <- "Annual Avg"
 
 #Attempt to Overlay Annual Average:
 ggplot(merge_AA_br2, aes(x = year, y=meanSales, color = Region)) +
@@ -142,5 +142,81 @@ ggplot(merge_AA_br2, aes(x = year, y=meanSales, color = Region)) +
     plot.title = element_markdown(size = 20, hjust = 0.5, vjust = 0.5)  # Center the title
   ) +
   ggtitle("Average Sales Factor Weight by Region")
+
+
+#Attempt to add Annual Avg.
+
+# Define a custom color palette
+custom_palette <- c("Annual Avg" = "blue", "Other Regions" = "gray")
+
+# Modify the plot using the custom color palette
+ggplot(merge_AA_br2, aes(x = year, y = meanSales, color = Region)) +
+  geom_line(size = 1.2) +
+  labs(x = "Year", y = "Sales Factor") +
+  scale_color_manual(name = "Region", values = custom_palette) +
+  theme_minimal() +
+  theme_economist() +
+  theme(
+    legend.text = element_text(size = 16),
+    axis.title.x = element_text(size = 18),
+    axis.title.y = element_text(size = 18),
+    plot.title = element_markdown(size = 20, hjust = 0.5, vjust = 0.5)  # Center the title
+  ) +
+  ggtitle("Average Sales Factor Weight by Region")
+
+
+#Trying to keep color
+# Define a custom color palette for the background colors of regions
+background_colors <- c("New England" = "#F5A623",      # Define light background colors for each region
+                       "Mideast" = "#7ED321",
+                       "Southeast" = "#50E3C2",
+                       "Great Lakes" = "#4A90E2",
+                       "Plains" = "#FF33B1",
+                       "Southwest" = "#FFD801",
+                       "Rocky Mountain" = "#32D9E0",
+                       "Far West" = "#29D05C",
+                       "AK/HA" = "#D08E8F")
+
+# Create the plot with separate layers for "Annual Avg" and other regions
+ggplot(merge_AA_br2, aes(x = year, y = meanSales, color = Region)) +
+  geom_line(data = subset(merge_AA_br2, Region == "Annual Avg"), size = 1.2, color = "black") +
+  geom_line(data = subset(merge_AA_br2, Region != "Annual Avg"), size = 1.2) +
+  labs(x = "Year", y = "Sales Factor") +
+  scale_color_manual(name = "Region", values = c("Annual Avg" = "black", background_colors), guide = "none") +
+  scale_fill_manual(values = background_colors) +  # Set background colors
+  theme_minimal() +
+  theme_economist() +
+  theme(
+    legend.text = element_text(size = 16),
+    axis.title.x = element_text(size = 18),
+    axis.title.y = element_text(size = 18),
+    plot.title = element_markdown(size = 20, hjust = 0.5, vjust = 0.5)  # Center the title
+  ) +
+  ggtitle("Average Sales Factor Weight by Region")
+
+#FinalGraph
+
+ggplot() +
+  geom_line(data = subset(merge_AA_br2, Region != "Annual Avg"), aes(x = year, y = meanSales, color = Region), size = 1.2) +
+  geom_line(data = subset(merge_AA_br2, Region == "Annual Avg"), aes(x = year, y = meanSales, color = "Annual Avg"), size = 1.5) +
+  labs(x = "Year", y = "Sales Factor") +
+  scale_color_manual(values = c("Annual Avg" = "black", background_colors)) +
+  scale_fill_manual(values = background_colors) +
+  theme_minimal() +
+  theme_economist() +
+  theme(
+    legend.text = element_text(size = 16),
+    axis.title.x = element_text(size = 18),
+    axis.title.y = element_text(size = 18),
+    axis.text.x = element_text(size = 14),  # Adjust the font size of x-axis labels
+    axis.text.y = element_text(size = 14),   # Adjust the font size of y-axis labels
+    plot.title = element_markdown(size = 20, hjust = 0.5, vjust = 0.5)  # Center the title
+  ) +
+  ggtitle("Average Sales Factor Weight by Region")
+
+write.csv(merge_AA_br2,"Average_SF_Weight_By_Region.csv",row.names=FALSE)
+
+write.csv(merged_df1,"SF_Weight_State_Region.csv",row.names=FALSE)
+
 
 
