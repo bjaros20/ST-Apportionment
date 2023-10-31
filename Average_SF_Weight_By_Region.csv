@@ -1,0 +1,481 @@
+"Region","year","meanSales"
+"AK/HA",1976,33.34
+"AK/HA",1977,33.34
+"AK/HA",1978,33.34
+"AK/HA",1979,33.34
+"AK/HA",1980,33.34
+"AK/HA",1981,33.34
+"AK/HA",1982,33.34
+"AK/HA",1983,33.34
+"AK/HA",1984,33.34
+"AK/HA",1985,33.34
+"AK/HA",1986,33.34
+"AK/HA",1987,33.34
+"AK/HA",1988,33.34
+"AK/HA",1989,33.34
+"AK/HA",1990,33.34
+"AK/HA",1991,33.34
+"AK/HA",1992,33.34
+"AK/HA",1993,33.34
+"AK/HA",1994,33.34
+"AK/HA",1995,33.34
+"AK/HA",1996,33.34
+"AK/HA",1997,33.34
+"AK/HA",1998,33.34
+"AK/HA",1999,33.34
+"AK/HA",2000,33.34
+"AK/HA",2001,33.34
+"AK/HA",2002,33.34
+"AK/HA",2003,33.34
+"AK/HA",2004,33.34
+"AK/HA",2005,33.34
+"AK/HA",2006,33.34
+"AK/HA",2007,33.34
+"AK/HA",2008,33.34
+"AK/HA",2009,33.34
+"AK/HA",2010,33.34
+"AK/HA",2011,33.34
+"AK/HA",2012,33.34
+"AK/HA",2013,33.34
+"AK/HA",2014,33.34
+"AK/HA",2015,33.34
+"AK/HA",2016,33.34
+"AK/HA",2017,33.34
+"AK/HA",2018,33.34
+"AK/HA",2019,33.34
+"AK/HA",2020,33.34
+"AK/HA",2021,33.34
+"AK/HA",2022,33.34
+"AK/HA",2023,33.34
+"Far West",1976,33.34
+"Far West",1977,33.34
+"Far West",1978,33.34
+"Far West",1979,33.34
+"Far West",1980,33.34
+"Far West",1981,33.34
+"Far West",1982,33.34
+"Far West",1983,33.34
+"Far West",1984,33.34
+"Far West",1985,33.34
+"Far West",1986,33.34
+"Far West",1987,33.34
+"Far West",1988,33.34
+"Far West",1989,33.34
+"Far West",1990,33.34
+"Far West",1991,41.67
+"Far West",1992,41.67
+"Far West",1993,50
+"Far West",1994,50
+"Far West",1995,50
+"Far West",1996,50
+"Far West",1997,50
+"Far West",1998,50
+"Far West",1999,50
+"Far West",2000,50
+"Far West",2001,50
+"Far West",2002,50
+"Far West",2003,50
+"Far West",2004,65
+"Far West",2005,65
+"Far West",2006,75
+"Far West",2007,75
+"Far West",2008,75
+"Far West",2009,75
+"Far West",2010,75
+"Far West",2011,100
+"Far West",2012,100
+"Far West",2013,100
+"Far West",2014,100
+"Far West",2015,100
+"Far West",2016,100
+"Far West",2017,100
+"Far West",2018,100
+"Far West",2019,100
+"Far West",2020,100
+"Far West",2021,100
+"Far West",2022,100
+"Far West",2023,100
+"Great Lakes",1976,36.672
+"Great Lakes",1977,36.672
+"Great Lakes",1978,36.672
+"Great Lakes",1979,36.672
+"Great Lakes",1980,36.672
+"Great Lakes",1981,36.672
+"Great Lakes",1982,36.672
+"Great Lakes",1983,36.672
+"Great Lakes",1984,36.672
+"Great Lakes",1985,40.004
+"Great Lakes",1986,40.004
+"Great Lakes",1987,43.336
+"Great Lakes",1988,43.336
+"Great Lakes",1989,43.336
+"Great Lakes",1990,43.336
+"Great Lakes",1991,44.668
+"Great Lakes",1992,44.668
+"Great Lakes",1993,46.668
+"Great Lakes",1994,46.668
+"Great Lakes",1995,46.668
+"Great Lakes",1996,50
+"Great Lakes",1997,56
+"Great Lakes",1998,56
+"Great Lakes",1999,63.334
+"Great Lakes",2000,66.666
+"Great Lakes",2001,70
+"Great Lakes",2002,70
+"Great Lakes",2003,70
+"Great Lakes",2004,70
+"Great Lakes",2005,70
+"Great Lakes",2006,72.5
+"Great Lakes",2007,78.5
+"Great Lakes",2008,86
+"Great Lakes",2009,88
+"Great Lakes",2010,90
+"Great Lakes",2011,92
+"Great Lakes",2012,92
+"Great Lakes",2013,92
+"Great Lakes",2014,100
+"Great Lakes",2015,100
+"Great Lakes",2016,100
+"Great Lakes",2017,100
+"Great Lakes",2018,100
+"Great Lakes",2019,100
+"Great Lakes",2020,100
+"Great Lakes",2021,100
+"Great Lakes",2022,100
+"Great Lakes",2023,100
+"Mideast",1976,36.672
+"Mideast",1977,36.672
+"Mideast",1978,36.672
+"Mideast",1979,36.672
+"Mideast",1980,36.672
+"Mideast",1981,36.672
+"Mideast",1982,36.672
+"Mideast",1983,36.672
+"Mideast",1984,36.672
+"Mideast",1985,36.672
+"Mideast",1986,36.672
+"Mideast",1987,36.672
+"Mideast",1988,36.672
+"Mideast",1989,36.672
+"Mideast",1990,36.672
+"Mideast",1991,36.672
+"Mideast",1992,40.004
+"Mideast",1993,40.004
+"Mideast",1994,40.004
+"Mideast",1995,43.336
+"Mideast",1996,43.336
+"Mideast",1997,46.668
+"Mideast",1998,46.668
+"Mideast",1999,46.668
+"Mideast",2000,48.668
+"Mideast",2001,48.668
+"Mideast",2002,48.668
+"Mideast",2003,48.668
+"Mideast",2004,48.668
+"Mideast",2005,48.668
+"Mideast",2006,48.668
+"Mideast",2007,56.668
+"Mideast",2008,60.668
+"Mideast",2009,63.268
+"Mideast",2010,64.668
+"Mideast",2011,64.668
+"Mideast",2012,68.668
+"Mideast",2013,74.668
+"Mideast",2014,76.668
+"Mideast",2015,76.668
+"Mideast",2016,76.668
+"Mideast",2017,80
+"Mideast",2018,84
+"Mideast",2019,88.334
+"Mideast",2020,94.286
+"Mideast",2021,95
+"Mideast",2022,100
+"Mideast",2023,100
+"New England",1976,36.1166666666667
+"New England",1977,36.1166666666667
+"New England",1978,36.1166666666667
+"New England",1979,36.1166666666667
+"New England",1980,36.1166666666667
+"New England",1981,36.1166666666667
+"New England",1982,36.1166666666667
+"New England",1983,38.8933333333333
+"New England",1984,38.8933333333333
+"New England",1985,38.8933333333333
+"New England",1986,38.8933333333333
+"New England",1987,38.8933333333333
+"New England",1988,38.8933333333333
+"New England",1989,38.8933333333333
+"New England",1990,38.8933333333333
+"New England",1991,41.67
+"New England",1992,44.4466666666667
+"New England",1993,44.4466666666667
+"New England",1994,44.4466666666667
+"New England",1995,44.4466666666667
+"New England",1996,44.4466666666667
+"New England",1997,44.4466666666667
+"New England",1998,44.4466666666667
+"New England",1999,44.4466666666667
+"New England",2000,44.4466666666667
+"New England",2001,44.4466666666667
+"New England",2002,44.4466666666667
+"New England",2003,44.4466666666667
+"New England",2004,44.4466666666667
+"New England",2005,44.4466666666667
+"New England",2006,47.2233333333333
+"New England",2007,55.5566666666667
+"New England",2008,55.5566666666667
+"New England",2009,55.5566666666667
+"New England",2010,55.5566666666667
+"New England",2011,55.5566666666667
+"New England",2012,55.5566666666667
+"New England",2013,55.5566666666667
+"New England",2014,55.5566666666667
+"New England",2015,66.6666666666667
+"New England",2016,75
+"New England",2017,75
+"New England",2018,75
+"New England",2019,75
+"New England",2020,75
+"New England",2021,75
+"New England",2022,83.3333333333333
+"New England",2023,91.6666666666667
+"Plains",1976,44.45
+"Plains",1977,44.45
+"Plains",1978,44.45
+"Plains",1979,44.45
+"Plains",1980,44.45
+"Plains",1981,44.45
+"Plains",1982,44.45
+"Plains",1983,44.45
+"Plains",1984,44.45
+"Plains",1985,44.45
+"Plains",1986,44.45
+"Plains",1987,50.56
+"Plains",1988,52.7816666666667
+"Plains",1989,55.0033333333333
+"Plains",1990,57.225
+"Plains",1991,59.4483333333333
+"Plains",1992,61.67
+"Plains",1993,61.67
+"Plains",1994,61.67
+"Plains",1995,61.67
+"Plains",1996,61.67
+"Plains",1997,61.67
+"Plains",1998,61.67
+"Plains",1999,72.78
+"Plains",2000,72.78
+"Plains",2001,73.6133333333333
+"Plains",2002,73.6133333333333
+"Plains",2003,73.6133333333333
+"Plains",2004,73.6133333333333
+"Plains",2005,73.6133333333333
+"Plains",2006,73.6133333333333
+"Plains",2007,74.1133333333333
+"Plains",2008,74.6133333333333
+"Plains",2009,75.1133333333333
+"Plains",2010,75.6133333333333
+"Plains",2011,76.1133333333333
+"Plains",2012,76.6133333333333
+"Plains",2013,77.1133333333333
+"Plains",2014,77.78
+"Plains",2015,77.78
+"Plains",2016,80.5566666666667
+"Plains",2017,80.5566666666667
+"Plains",2018,82.2233333333333
+"Plains",2019,88.89
+"Plains",2020,88.89
+"Plains",2021,88.89
+"Plains",2022,88.89
+"Plains",2023,88.89
+"Rocky Mountain",1976,33.34
+"Rocky Mountain",1977,33.34
+"Rocky Mountain",1978,33.34
+"Rocky Mountain",1979,33.34
+"Rocky Mountain",1980,33.34
+"Rocky Mountain",1981,33.34
+"Rocky Mountain",1982,33.34
+"Rocky Mountain",1983,33.34
+"Rocky Mountain",1984,33.34
+"Rocky Mountain",1985,33.34
+"Rocky Mountain",1986,33.34
+"Rocky Mountain",1987,33.34
+"Rocky Mountain",1988,33.34
+"Rocky Mountain",1989,33.34
+"Rocky Mountain",1990,33.34
+"Rocky Mountain",1991,33.34
+"Rocky Mountain",1992,33.34
+"Rocky Mountain",1993,33.34
+"Rocky Mountain",1994,33.34
+"Rocky Mountain",1995,37.505
+"Rocky Mountain",1996,37.505
+"Rocky Mountain",1997,37.505
+"Rocky Mountain",1998,37.505
+"Rocky Mountain",1999,37.505
+"Rocky Mountain",2000,37.505
+"Rocky Mountain",2001,37.505
+"Rocky Mountain",2002,37.505
+"Rocky Mountain",2003,37.505
+"Rocky Mountain",2004,37.505
+"Rocky Mountain",2005,37.505
+"Rocky Mountain",2006,41.67
+"Rocky Mountain",2007,41.67
+"Rocky Mountain",2008,41.67
+"Rocky Mountain",2009,58.335
+"Rocky Mountain",2010,58.335
+"Rocky Mountain",2011,62.5
+"Rocky Mountain",2012,66.67
+"Rocky Mountain",2013,70.835
+"Rocky Mountain",2014,70.835
+"Rocky Mountain",2015,70.835
+"Rocky Mountain",2016,70.835
+"Rocky Mountain",2017,70.835
+"Rocky Mountain",2018,70.835
+"Rocky Mountain",2019,70.835
+"Rocky Mountain",2020,70.835
+"Rocky Mountain",2021,70.835
+"Rocky Mountain",2022,87.5
+"Rocky Mountain",2023,87.5
+"Southeast",1976,34.7283333333333
+"Southeast",1977,34.7283333333333
+"Southeast",1978,34.7283333333333
+"Southeast",1979,34.7283333333333
+"Southeast",1980,34.7283333333333
+"Southeast",1981,34.7283333333333
+"Southeast",1982,34.7283333333333
+"Southeast",1983,34.7283333333333
+"Southeast",1984,34.7283333333333
+"Southeast",1985,34.7283333333333
+"Southeast",1986,37.505
+"Southeast",1987,37.505
+"Southeast",1988,37.505
+"Southeast",1989,38.8933333333333
+"Southeast",1990,38.8933333333333
+"Southeast",1991,38.8933333333333
+"Southeast",1992,38.8933333333333
+"Southeast",1993,38.8933333333333
+"Southeast",1994,40.2816666666667
+"Southeast",1995,43.0583333333333
+"Southeast",1996,43.0583333333333
+"Southeast",1997,45.835
+"Southeast",1998,45.835
+"Southeast",1999,45.835
+"Southeast",2000,47.2233333333333
+"Southeast",2001,47.2233333333333
+"Southeast",2002,47.2233333333333
+"Southeast",2003,47.2233333333333
+"Southeast",2004,52.7783333333333
+"Southeast",2005,52.7783333333333
+"Southeast",2006,55.2783333333333
+"Southeast",2007,60.2783333333333
+"Southeast",2008,61.1116666666667
+"Southeast",2009,61.1116666666667
+"Southeast",2010,61.1116666666667
+"Southeast",2011,62.5
+"Southeast",2012,62.5
+"Southeast",2013,62.5
+"Southeast",2014,62.5
+"Southeast",2015,62.5
+"Southeast",2016,67.5
+"Southeast",2017,68.0558333333333
+"Southeast",2018,79.1666666666667
+"Southeast",2019,79.1666666666667
+"Southeast",2020,79.1666666666667
+"Southeast",2021,87.5
+"Southeast",2022,87.5
+"Southeast",2023,91.6666666666667
+"Southwest",1976,33.34
+"Southwest",1977,33.34
+"Southwest",1978,33.34
+"Southwest",1979,33.34
+"Southwest",1980,33.34
+"Southwest",1981,33.34
+"Southwest",1982,33.34
+"Southwest",1983,33.34
+"Southwest",1984,33.34
+"Southwest",1985,33.34
+"Southwest",1986,33.34
+"Southwest",1987,33.34
+"Southwest",1988,33.34
+"Southwest",1989,33.34
+"Southwest",1990,33.34
+"Southwest",1991,38.8933333333333
+"Southwest",1992,38.8933333333333
+"Southwest",1993,38.8933333333333
+"Southwest",1994,38.8933333333333
+"Southwest",1995,38.8933333333333
+"Southwest",1996,38.8933333333333
+"Southwest",1997,38.8933333333333
+"Southwest",1998,38.8933333333333
+"Southwest",1999,38.8933333333333
+"Southwest",2000,38.8933333333333
+"Southwest",2001,38.8933333333333
+"Southwest",2002,38.8933333333333
+"Southwest",2003,38.8933333333333
+"Southwest",2004,38.8933333333333
+"Southwest",2005,38.8933333333333
+"Southwest",2006,38.8933333333333
+"Southwest",2007,42.2266666666667
+"Southwest",2008,45.56
+"Southwest",2009,48.8933333333333
+"Southwest",2010,48.8933333333333
+"Southwest",2011,48.8933333333333
+"Southwest",2012,48.8933333333333
+"Southwest",2013,48.8933333333333
+"Southwest",2014,50.56
+"Southwest",2015,52.2266666666667
+"Southwest",2016,53.8933333333333
+"Southwest",2017,55.56
+"Southwest",2018,55.56
+"Southwest",2019,55.56
+"Southwest",2020,55.56
+"Southwest",2021,55.56
+"Southwest",2022,55.56
+"Southwest",2023,55.56
+"Annual Avg",1976,36.3022222222222
+"Annual Avg",1977,36.3022222222222
+"Annual Avg",1978,36.3022222222222
+"Annual Avg",1979,36.3022222222222
+"Annual Avg",1980,36.3022222222222
+"Annual Avg",1981,36.3022222222222
+"Annual Avg",1982,36.3022222222222
+"Annual Avg",1983,36.6724444444444
+"Annual Avg",1984,36.6724444444444
+"Annual Avg",1985,37.0426666666667
+"Annual Avg",1986,37.7831111111111
+"Annual Avg",1987,38.968
+"Annual Avg",1988,39.2642222222222
+"Annual Avg",1989,39.9306666666667
+"Annual Avg",1990,40.2268888888889
+"Annual Avg",1991,41.782
+"Annual Avg",1992,42.8186666666667
+"Annual Avg",1993,43.4111111111111
+"Annual Avg",1994,43.7813333333333
+"Annual Avg",1995,45.2622222222222
+"Annual Avg",1996,45.6324444444444
+"Annual Avg",1997,47.4097777777778
+"Annual Avg",1998,47.4097777777778
+"Annual Avg",1999,49.706
+"Annual Avg",2000,50.6686666666667
+"Annual Avg",2001,51.1502222222222
+"Annual Avg",2002,51.1502222222222
+"Annual Avg",2003,51.1502222222222
+"Annual Avg",2004,53.2982222222222
+"Annual Avg",2005,53.2982222222222
+"Annual Avg",2006,55.4275555555556
+"Annual Avg",2007,59.7164444444444
+"Annual Avg",2008,61.5053333333333
+"Annual Avg",2009,63.7866666666667
+"Annual Avg",2010,64.2311111111111
+"Annual Avg",2011,66.3715555555556
+"Annual Avg",2012,67.2533333333333
+"Annual Avg",2013,68.3568888888889
+"Annual Avg",2014,68.9786363636364
+"Annual Avg",2015,70.6072727272727
+"Annual Avg",2016,73.5995454545454
+"Annual Avg",2017,74.2434090909091
+"Annual Avg",2018,77.9554545454545
+"Annual Avg",2019,79.3570454545455
+"Annual Avg",2020,80.0334090909091
+"Annual Avg",2021,82.3872727272727
+"Annual Avg",2022,85.6068181818182
+"Annual Avg",2023,87.8795454545455
