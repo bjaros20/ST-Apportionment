@@ -200,7 +200,7 @@ ggplot() +
   geom_line(data = subset(merge_AA_br2, Region != "Annual Avg"), aes(x = year, y = meanSales, color = Region), size = 1.2) +
   geom_line(data = subset(merge_AA_br2, Region == "Annual Avg"), aes(x = year, y = meanSales, color = "Annual Avg"), size = 1.5) +
   labs(x = "Year", y = "Sales Factor") +
-  scale_color_manual(values = c("Annual Avg" = "black", background_colors)) +
+  scale_color_manual(values = c("Annual Avg" = "Red", background_colors)) +
   scale_fill_manual(values = background_colors) +
   theme_minimal() +
   theme_economist() +
