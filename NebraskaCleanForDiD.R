@@ -1,4 +1,4 @@
-#Attempt to Get DiD_ Nebraska
+#Attempt to Clean before DiD_ Nebraska
 install.packages("readxl")
 install.packages("tidyr")
 install.packages("dplyr")
@@ -58,6 +58,3 @@ colnames(merged_df)[colnames(merged_df) == "StateFullName"] <- "State"
 # Assuming merged_df is the data frame you want to save
 write.csv(merged_df, file = "NE_DiD_Set_up.csv", row.names = FALSE)
 
-
-All_App_df %>%
-  filter()
