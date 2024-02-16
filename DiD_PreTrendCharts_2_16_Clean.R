@@ -64,8 +64,6 @@ combined_data_C3 <- bind_rows(Just_NE_2007, Control_Midwest_2007_Df)
 
 
 
-
-
 # Create a binary variable for the post-period
 combined_data_C1$Post_Period <- ifelse(combined_data_C1$Year > 1986, 1, 0)
 
@@ -80,7 +78,6 @@ summary(did_model)
 
 # Create a variable to distinguish between Treatment and Control
 combined_data_C1$group <- ifelse(combined_data_C1$State == "Nebraska", "Treatment", "Control")
-
 
 
 
@@ -107,48 +104,28 @@ reg1=lm(Log_Revenue~Treatment+Post_Period+(Treatment*Post_Period ),data=combined
 summary(reg1)
 
 
-#This was correct and ran:
+#This was correct and ran, NE to Never Switchers 2007
 reg6 <- feols(Log_Revenue~ i(Year,Treatment,1987), data = combined_data_C1)
 coefplot(reg6, ref.line=1987)
 
 iplot(reg6, ref.line= c(1987,1992))
 
 
-#This was correct and ran:
+#This was correct and ran, NE to Never Switchers 1999
 reg7 <- feols(Log_Revenue~ i(Year,Treatment,1987), data = combined_data_C2)
 coefplot(reg6, ref.line=1987)
 
 iplot(reg7, ref.line= c(1987,1992))
 
 
-#This was correct and ran:
+#This was correct and ran, NE to ND and KS
 reg8 <- feols(Log_Revenue~ i(Year,Treatment,1987), data = combined_data_C3)
 coefplot(reg8, ref.line=1987)
 
 iplot(reg8, ref.line= c(1987,1992))
 
-
-
-abline(v = 1987, col = "red", lty = 2)  # Change color and line type if needed
-
 # Show the coefficient plot
 print(coefplot)
-
-# Create a predicted values dataframe
-predictions <- data.frame(Log_Revenue = predict(reg1, newdata = combined_data_C1), Treatment = combined_data_C1$Treatment)
-
-# Plot the predicted values and add a vertical line
-library(ggplot2)
-
-ggplot(predictions, aes(x = Treatment, y = Log_Revenue)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE, color = "blue") +
-  geom_vline(xintercept = 0.5, linetype = "dashed", color = "red") +  # Add a vertical line at x = 0.5
-  labs(title = "Regression Plot with Vertical Line",
-       x = "Treatment",
-       y = "Log_Revenue") +
-  theme_minimal()
-
 
 
 ## Call:
@@ -164,11 +141,9 @@ minfo$Group = "Never Switch to SSFA"
 minfo$Group[33:64] = "Nebraska"
 #minfo
 
-require(ggplot2)    #package for creating nice plots
 
 qplot(YR, LFPR, data=minfo, geom=c("point","line"), colour=Group,
       xlab="Year", ylab="Log Revenue")+geom_vline(xintercept = 1987)+geom_vline(xintercept = 1992)
-
 
 
 combined_data_C1$first_t <- ifelse(combined_data_C1$State == "Nebraska" & combined_data_C1$Year == 1986, 1, 0)
@@ -180,7 +155,6 @@ example_attgt <- att_gt(yname = "Log_Revenue",
                         xformla = ~1,
                         data = combined_data_C1
 )
-
 
 
 
