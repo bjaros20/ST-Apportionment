@@ -26,6 +26,9 @@ setwd("~/Documents/GitHub/ST-Apportionment/Direct_Switch_DiD")
 # Read in DF
 Rev <- read.csv("SALT_App_Merge_2024.csv")
 
+Rev <- Rev %>%
+  mutate(Log_CORPINCTX=log(CORPINCTX))
+
 Rev2 <- Rev %>%
   filter(c(year >=1976 & year <=2007))
 
@@ -177,6 +180,299 @@ iplot(mod_twfe_MO2,
       main='Event Study Plot: Missouri Vs. Never & Not-Yet Treated Control (TWFE)')
 
 #Time for Mississippi
+RevMS<- Rev %>%
+  filter(c(year>=1983 & year <=2010))
+
+MS_DiD <- RevMS %>%
+  filter(State_Acronym=="MS"|State_Acronym=="AK"| State_Acronym=="HI"|State_Acronym=="KS"|State_Acronym=="NM"|State_Acronym=="OK"|State_Acronym=="AL"|State_Acronym=="MT")
 
 
+#Create Treatment Column for MO
+MS_DiD['treatment'] <- 0
+MS_DiD[which(MS_DiD$state=="Mississippi" & MS_DiD$year>2003),"treatment"]<-1
+
+
+#Fit TW FE Log, but better, Wards Package
+MS_fit_tw_Log <- feols(Log_CORPINCTX ~ 
+                         treatment |
+                         state + year,
+                       data = MS_DiD)
+
+summary(MS_fit_tw_Log) 
+
+#Create a time to treatment column for all states and all periods and set default to 0
+MS_DiD$time_to_treatment <- 0
+
+#Set Treatment Year of 0 in time to treatment column
+MS_DiD$time_to_treatment[MS_DiD$state == "Mississippi" & MS_DiD$year == 2003] <- 0
+
+#Get Decreasing Negative Numbers for time Prior to treatment for Mississippi
+MS_DiD$time_to_treatment[MS_DiD$state == "Mississippi" & MS_DiD$year < 2003] <-
+  (2003 - MS_DiD$year[MS_DiD$state == "Mississippi" & MS_DiD$year < 2003])*-1
+
+#Get increasing Positive Numbers for Nebrask after Treatment
+MS_DiD$time_to_treatment[MS_DiD$state == "Mississippi" & MS_DiD$year > 2003] <-
+  MS_DiD$year[MS_DiD$state == "Mississippi" & MS_DiD$year > 2003] - 2003
+
+
+#Run the Modified 2WFE w/ feols
+mod_twfe_MS=feols(Log_CORPINCTX ~ 
+                    i(time_to_treatment,treatment, ref=-1) |
+                    state + year,
+                  data = MS_DiD)
+
+#Error Message that excluded the time to treatment variables due to collinearity
+#The variables 'time_to_treatment::-12:treatment', 'time_to_treatment::-11:treatment' and ten others have been removed because of collinearity (see $collin.var).
+#Plot
+iplot(mod_twfe_MS,
+      xlab='Time to treatment',
+      main='Event Study Plot: Mississippi Vs. Never & Not-Yet Treated Control (TWFE)')
+
+#Attempt to Run twfe w/o variables dropping
+mod_twfe_MS2 <- feols(Log_CORPINCTX ~
+                        i(time_to_treatment, ref=-1) |
+                        state + year,
+                      data = MS_DiD)
+#Plot
+iplot(mod_twfe_MS2,
+      xlab='Time to treatment',
+      main='Event Study Plot: Mississippi Vs. Never & Not-Yet Treated Control (TWFE)')
+
+#Colorado, remove Alabama as a control because it switches to DWS in 2010
+RevCO<- Rev %>%
+  filter(c(year>=1988 & year <=2021))
+
+CO_DiD <- RevCO %>%
+  filter(State_Acronym=="CO"|State_Acronym=="AK"| State_Acronym=="HI"|State_Acronym=="KS"|State_Acronym=="NM"|State_Acronym=="OK"|State_Acronym=="MT")
+
+
+#Create Treatment Column for MO
+CO_DiD['treatment'] <- 0
+CO_DiD[which(CO_DiD$state=="Colorado" & CO_DiD$year>2008),"treatment"]<-1
+
+
+#Fit TW FE Log, but better, Wards Package
+CO_fit_tw_Log <- feols(Log_CORPINCTX ~ 
+                         treatment |
+                         state + year,
+                       data = CO_DiD)
+
+summary(CO_fit_tw_Log) 
+
+#Create a time to treatment column for all states and all periods and set default to 0
+CO_DiD$time_to_treatment <- 0
+
+#Set Treatment Year of 0 in time to treatment column
+CO_DiD$time_to_treatment[CO_DiD$state == "Colorado" & CO_DiD$year == 2008] <- 0
+
+#Get Decreasing Negative Numbers for time Prior to treatment for Colorado
+CO_DiD$time_to_treatment[CO_DiD$state == "Colorado" & CO_DiD$year < 2008] <-
+  (2008 - CO_DiD$year[CO_DiD$state == "Colorado" & CO_DiD$year < 2008])*-1
+
+#Get increasing Positive Numbers for Nebrask after Treatment
+CO_DiD$time_to_treatment[CO_DiD$state == "Colorado" & CO_DiD$year > 2008] <-
+  CO_DiD$year[CO_DiD$state == "Colorado" & CO_DiD$year > 2008] - 2008
+
+
+#Run the Modified 2WFE w/ feols
+mod_twfe_CO=feols(Log_CORPINCTX ~ 
+                    i(time_to_treatment,treatment, ref=-1) |
+                    state + year,
+                  data = CO_DiD)
+
+#Error Message that excluded the time to treatment variables due to collinearity
+#The variables 'time_to_treatment::-12:treatment', 'time_to_treatment::-11:treatment' and ten others have been removed because of collinearity (see $collin.var).
+#Plot
+iplot(mod_twfe_CO,
+      xlab='Time to treatment',
+      main='Event Study Plot: Colorado Vs. Never & Not-Yet Treated Control (TWFE)')
+
+#Attempt to Run twfe w/o variables dropping
+mod_twfe_CO2 <- feols(Log_CORPINCTX ~
+                        i(time_to_treatment, ref=-1) |
+                        state + year,
+                      data = CO_DiD)
+#Plot
+iplot(mod_twfe_CO2,
+      xlab='Time to treatment',
+      main='Event Study Plot: Colorado Vs. Never & Not-Yet Treated Control (TWFE)')
+
+
+#Rhode Island
+
+RevRI<- Rev %>%
+  filter(c(year>=1990 & year <=2021))
+RI_DiD <- RevRI %>%
+  filter(State_Acronym=="RI"|State_Acronym=="AK"| State_Acronym=="HI"|State_Acronym=="KS"|State_Acronym=="NM"|State_Acronym=="OK"|State_Acronym=="MT")
+
+#Create Treatment Column for MO
+RI_DiD['treatment'] <- 0
+RI_DiD[which(RI_DiD$state=="Rhode Island" & RI_DiD$year>2014),"treatment"]<-1
+
+
+#Fit TW FE Log, but better, Wards Package
+RI_fit_tw_Log <- feols(Log_CORPINCTX ~ 
+                         treatment |
+                         state + year,
+                       data = RI_DiD)
+
+summary(RI_fit_tw_Log) 
+
+#Create a time to treatment column for all states and all periods and set default to 0
+RI_DiD$time_to_treatment <- 0
+
+#Set Treatment Year of 0 in time to treatment column
+RI_DiD$time_to_treatment[RI_DiD$state == "Rhode Island" & RI_DiD$year == 2014] <- 0
+
+#Get Decreasing Negative Numbers for time Prior to treatment for Rhode Island
+RI_DiD$time_to_treatment[RI_DiD$state == "Rhode Island" & RI_DiD$year < 2014] <-
+  (2014 - RI_DiD$year[RI_DiD$state == "Rhode Island" & RI_DiD$year < 2014])*-1
+
+#Get increasing Positive Numbers for Rhode Island after Treatment
+RI_DiD$time_to_treatment[RI_DiD$state == "Rhode Island" & RI_DiD$year > 2014] <-
+  RI_DiD$year[RI_DiD$state == "Rhode Island" & RI_DiD$year > 2014] - 2014
+
+
+#Run the Modified 2WFE w/ feols
+mod_twfe_RI=feols(Log_CORPINCTX ~ 
+                    i(time_to_treatment,treatment, ref=-1) |
+                    state + year,
+                  data = RI_DiD)
+
+#Error Message that excluded the time to treatment variables due to collinearity
+#The variables 'time_to_treatment::-12:treatment', 'time_to_treatment::-11:treatment' and ten others have been removed because of collinearity (see $collin.var).
+#Plot
+iplot(mod_twfe_RI,
+      xlab='Time to treatment',
+      main='Event Study Plot: Rhode Island Vs. Never & Not-Yet Treated Control (TWFE)')
+
+#Attempt to Run twfe w/o variables dropping
+mod_twfe_RI2 <- feols(Log_CORPINCTX ~
+                        i(time_to_treatment, ref=-1) |
+                        state + year,
+                      data = RI_DiD)
+#Plot
+iplot(mod_twfe_RI2,
+      xlab='Time to treatment',
+      main='Event Study Plot: Rhode Island Vs. Never & Not-Yet Treated Control (TWFE)')
+
+
+#North Dakota
+RevND<- Rev %>%
+  filter(c(year>=1995 & year <=2021))
+
+ND_DiD <- RevND %>%
+  filter(State_Acronym=="ND"|State_Acronym=="AK"| State_Acronym=="HI"|State_Acronym=="KS"|State_Acronym=="NM"|State_Acronym=="OK"|State_Acronym=="MT")
+
+
+#Create Treatment Column for MO
+ND_DiD['treatment'] <- 0
+ND_DiD[which(ND_DiD$state=="North Dakota" & ND_DiD$year>2016),"treatment"]<-1
+
+
+#Fit TW FE Log, but better, Wards Package
+ND_fit_tw_Log <- feols(Log_CORPINCTX ~ 
+                         treatment |
+                         state + year,
+                       data = ND_DiD)
+
+summary(ND_fit_tw_Log) 
+
+#Create a time to treatment column for all states and all periods and set default to 0
+ND_DiD$time_to_treatment <- 0
+
+#Set Treatment Year of 0 in time to treatment column
+ND_DiD$time_to_treatment[ND_DiD$state == "North Dakota" & ND_DiD$year == 2016] <- 0
+
+#Get Decreasing Negative Numbers for time Prior to treatment for North Dakota
+ND_DiD$time_to_treatment[ND_DiD$state == "North Dakota" & ND_DiD$year < 2016] <-
+  (2016 - ND_DiD$year[ND_DiD$state == "North Dakota" & ND_DiD$year < 2016])*-1
+
+#Get increasing Positive Numbers for North Dakota after Treatment
+ND_DiD$time_to_treatment[ND_DiD$state == "North Dakota" & ND_DiD$year > 2016] <-
+  ND_DiD$year[ND_DiD$state == "North Dakota" & ND_DiD$year > 2016] - 2016
+
+
+#Run the Modified 2WFE w/ feols
+mod_twfe_ND=feols(Log_CORPINCTX ~ 
+                    i(time_to_treatment,treatment, ref=-1) |
+                    state + year,
+                  data = ND_DiD)
+
+#Error Message that excluded the time to treatment variables due to collinearity
+#The variables 'time_to_treatment::-12:treatment', 'time_to_treatment::-11:treatment' and ten others have been removed because of collinearity (see $collin.var).
+#Plot
+iplot(mod_twfe_ND,
+      xlab='Time to treatment',
+      main='Event Study Plot: North Dakota Vs. Never & Not-Yet Treated Control (TWFE)')
+
+#Attempt to Run twfe w/o variables dropping
+mod_twfe_ND2 <- feols(Log_CORPINCTX ~
+                        i(time_to_treatment, ref=-1) |
+                        state + year,
+                      data = ND_DiD)
+#Plot
+iplot(mod_twfe_ND2,
+      xlab='Time to treatment',
+      main='Event Study Plot: North Dakota Vs. Never & Not-Yet Treated Control (TWFE)')
+
+
+#Delaware
+RevDE<- Rev %>%
+  filter(c(year>=1995 & year <=2021))
+
+DE_DiD <- RevDE %>%
+  filter(State_Acronym=="DE"|State_Acronym=="AK"| State_Acronym=="HI"|State_Acronym=="KS"|State_Acronym=="NM"|State_Acronym=="OK"|State_Acronym=="MT")
+
+
+#Create Treatment Column for Delaware
+DE_DiD['treatment'] <- 0
+DE_DiD[which(DE_DiD$state=="Delaware" & DE_DiD$year>2017),"treatment"]<-1
+
+
+#Fit TW FE Log, but better, Wards Package
+DE_fit_tw_Log <- feols(Log_CORPINCTX ~ 
+                         treatment |
+                         state + year,
+                       data = DE_DiD)
+
+summary(DE_fit_tw_Log) 
+
+#Create a time to treatment column for all states and all periods and set default to 0
+MO_DiD$time_to_treatment <- 0
+
+#Set Treatment Year of 0 in time to treatment column
+MO_DiD$time_to_treatment[MO_DiD$state == "Missouri" & MO_DiD$year == 1999] <- 0
+
+#Get Decreasing Negative Numbers for time Prior to treatment for Missouri
+MO_DiD$time_to_treatment[MO_DiD$state == "Missouri" & MO_DiD$year < 1999] <-
+  (1999 - MO_DiD$year[MO_DiD$state == "Missouri" & MO_DiD$year < 1999])*-1
+
+#Get increasing Positive Numbers for Nebrask after Treatment
+MO_DiD$time_to_treatment[MO_DiD$state == "Missouri" & MO_DiD$year > 1999] <-
+  MO_DiD$year[MO_DiD$state == "Missouri" & MO_DiD$year > 1999] - 1999
+
+
+#Run the Modified 2WFE w/ feols
+mod_twfe_MO=feols(Log_CORPINCTX ~ 
+                    i(time_to_treatment,treatment, ref=-1) |
+                    state + year,
+                  data = MO_DiD)
+
+#Error Message that excluded the time to treatment variables due to collinearity
+#The variables 'time_to_treatment::-12:treatment', 'time_to_treatment::-11:treatment' and ten others have been removed because of collinearity (see $collin.var).
+#Plot
+iplot(mod_twfe_MO,
+      xlab='Time to treatment',
+      main='Event Study Plot: Missouri Vs. Never & Not-Yet Treated Control (TWFE)')
+
+#Attempt to Run twfe w/o variables dropping
+mod_twfe_MO2 <- feols(Log_CORPINCTX ~
+                        i(time_to_treatment, ref=-1) |
+                        state + year,
+                      data = MO_DiD)
+#Plot
+iplot(mod_twfe_MO2,
+      xlab='Time to treatment',
+      main='Event Study Plot: Missouri Vs. Never & Not-Yet Treated Control (TWFE)')
 
