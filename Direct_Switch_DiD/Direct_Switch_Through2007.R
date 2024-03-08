@@ -438,41 +438,42 @@ DE_fit_tw_Log <- feols(Log_CORPINCTX ~
 
 summary(DE_fit_tw_Log) 
 
+
 #Create a time to treatment column for all states and all periods and set default to 0
-MO_DiD$time_to_treatment <- 0
+DE_DiD$time_to_treatment <- 0
 
 #Set Treatment Year of 0 in time to treatment column
-MO_DiD$time_to_treatment[MO_DiD$state == "Missouri" & MO_DiD$year == 1999] <- 0
+DE_DiD$time_to_treatment[DE_DiD$state == "Delaware" & DE_DiD$year == 2017] <- 0
 
-#Get Decreasing Negative Numbers for time Prior to treatment for Missouri
-MO_DiD$time_to_treatment[MO_DiD$state == "Missouri" & MO_DiD$year < 1999] <-
-  (1999 - MO_DiD$year[MO_DiD$state == "Missouri" & MO_DiD$year < 1999])*-1
+#Get Decreasing Negative Numbers for time Prior to treatment for Delware
+DE_DiD$time_to_treatment[DE_DiD$state == "Delaware" & DE_DiD$year < 2017] <-
+  (2017 - DE_DiD$year[DE_DiD$state == "Delaware" & DE_DiD$year < 2017])*-1
 
 #Get increasing Positive Numbers for Nebrask after Treatment
-MO_DiD$time_to_treatment[MO_DiD$state == "Missouri" & MO_DiD$year > 1999] <-
-  MO_DiD$year[MO_DiD$state == "Missouri" & MO_DiD$year > 1999] - 1999
+DE_DiD$time_to_treatment[DE_DiD$state == "Delaware" & DE_DiD$year > 2017] <-
+  DE_DiD$year[DE_DiD$state == "Delaware" & DE_DiD$year > 2017] - 2017
 
 
 #Run the Modified 2WFE w/ feols
-mod_twfe_MO=feols(Log_CORPINCTX ~ 
+mod_twfe_DE=feols(Log_CORPINCTX ~ 
                     i(time_to_treatment,treatment, ref=-1) |
                     state + year,
-                  data = MO_DiD)
+                  data = DE_DiD)
 
 #Error Message that excluded the time to treatment variables due to collinearity
 #The variables 'time_to_treatment::-12:treatment', 'time_to_treatment::-11:treatment' and ten others have been removed because of collinearity (see $collin.var).
 #Plot
-iplot(mod_twfe_MO,
+iplot(mod_twfe_DE,
       xlab='Time to treatment',
-      main='Event Study Plot: Missouri Vs. Never & Not-Yet Treated Control (TWFE)')
+      main='Event Study Plot: Delaware Vs. Never & Not-Yet Treated Control (TWFE)')
 
 #Attempt to Run twfe w/o variables dropping
-mod_twfe_MO2 <- feols(Log_CORPINCTX ~
+mod_twfe_DE2 <- feols(Log_CORPINCTX ~
                         i(time_to_treatment, ref=-1) |
                         state + year,
-                      data = MO_DiD)
+                      data = DE_DiD)
 #Plot
-iplot(mod_twfe_MO2,
+iplot(mod_twfe_DE2,
       xlab='Time to treatment',
-      main='Event Study Plot: Missouri Vs. Never & Not-Yet Treated Control (TWFE)')
+      main='Event Study Plot: Delware Vs. Never & Not-Yet Treated Control (TWFE)')
 
