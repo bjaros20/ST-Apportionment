@@ -152,7 +152,7 @@ TwoWayFE_IncTax_Log <- did2s(
 fixest::etable(TwoWayFE_IncTax_Log)
 
 
-
+write_csv(merged_df3, "FinalGardner_AprilWorkshop24.csv")
 
 
 
