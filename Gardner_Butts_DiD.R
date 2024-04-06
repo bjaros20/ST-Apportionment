@@ -108,8 +108,76 @@ TwoWayFE <- did2s(
 #>  - second stage formula `~ i(treat, ref = FALSE)`
 #>  - The indicator variable that denotes when treatment is on is `treat`
 #>  - Standard errors will be clustered by `state`
-
 fixest::etable(TwoWayFE)
+#>          Gardner Result               TwoWayFE
+#Dependent Var.:   Log_CORPINCTX
+
+#treatment = 1   0.0042 (0.0766)
+#_______________ _______________
+#S.E. type                Custom
+#Observations              1,496
+#R2                     -0.00064
+#Adj. R2                -0.00064
+#---
+#  Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#>  
+#
+
+# I will also run it with not logged Revenue and Individual income tax:
+#Run Gardner, Regular Revenue
+TwoWayFE_RegRev <- did2s(
+  merged_df3,
+  yname = "CORPINCTX", first_stage = ~ 0 | state + year,
+  second_stage = ~ i(treatment, ref = FALSE), treatment = "treatment",
+  cluster_var = "state"
+)
+fixest::etable(TwoWayFE_RegRev)
+
+#Gardner Individual Income Tax Revenue
+TwoWayFE_IncTax <- did2s(
+  merged_df3,
+  yname = "INCTAX", first_stage = ~ 0 | state + year,
+  second_stage = ~ i(treatment, ref = FALSE), treatment = "treatment",
+  cluster_var = "state"
+)
+fixest::etable(TwoWayFE_IncTax)
+
+#Log Invividual
+TwoWayFE_IncTax_Log <- did2s(
+  merged_df3,
+  yname = "Log_INCTAX", first_stage = ~ 0 | state + year,
+  second_stage = ~ i(treatment, ref = FALSE), treatment = "treatment",
+  cluster_var = "state"
+)
+fixest::etable(TwoWayFE_IncTax_Log)
+
+
+
+
+
+
+
+#Create log Individual income, Sales, and Total Tax Revenue
+merged_df3 <- merged_df3 %>%
+  mutate(Log_INCTAX=log(INCTAX))
+
+merged_df3 <- merged_df3 %>%
+  mutate(Log_INCTAX=ifelse(is.nan(Log_INCTAX),0,Log_INCTAX))
+#Sales Tax
+merged_df3 <- merged_df3 %>%
+  mutate(Log_SALESTAX=log(SALESTAX))
+
+merged_df3 <- merged_df3 %>%
+  mutate(Log_SALESTAX=ifelse(is.nan(Log_SALESTAX),0,Log_SALESTAX))
+#Total Tax
+merged_df3 <- merged_df3 %>%
+  mutate(Log_TOTLTAX=log(TOTLTAX))
+
+merged_df3 <- merged_df3 %>%
+  mutate(Log_TOTLTAX=ifelse(is.nan(Log_TOTLTAX),0,Log_TOTLTAX))
+
+
+
 
 #Got a result, now try Event Study DiD
 # Event Study
