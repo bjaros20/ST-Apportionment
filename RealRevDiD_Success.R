@@ -1,21 +1,10 @@
 #RealRev_DiD Success
-install.packages("readxl")
-install.packages("did")
-install.packages("tidyverse")
-install.packages("lmtest")
-install.packages("quantreg")
-install.packages("caret")
-install.packages("ggplot2")
-install.packages("tidyr")
-install.packages("dplyr")
-
 library(readxl)
 library(tidyr)
 library(dplyr)
 library(did)
 library(tidyverse)
 library(lmtest)
-library(quantreg)
 library(caret)
 library(ggplot2)
 
