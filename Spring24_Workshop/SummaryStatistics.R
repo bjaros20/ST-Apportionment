@@ -39,112 +39,36 @@ print(summary_stats_INCTAX)
 write.csv(Rev_filtered,"SummaryStats_Sheet_4_6_24.csv")
 
 
-# Replace NAs with zeros for 'CORPINCTX'
-Rev$CORPINCTX <- replace(Rev$CORPINCTX, is.na(Rev$CORPINCTX), 0)
+# Assuming 'Rev_filtered' is your filtered dataframe containing the groups 'c' and 't'
 
-# Calculate summary statistics for group 'c'
-summary_c_CORPINCTX <- Rev %>%
+# Calculate summary statistics for group 'c' for the INCTAX column
+summary_c_INCTAX <- Rev_filtered %>%
   filter(group == "c") %>%
   summarize(
-    n = n(),
-    mean_CORPINCTX = mean(CORPINCTX),
-    median_CORPINCTX = median(CORPINCTX),
-    sd_CORPINCTX = sd(CORPINCTX),
-    min_CORPINCTX = min(CORPINCTX),
-    max_CORPINCTX = max(CORPINCTX)
+    n_INCTAX = n(),
+    mean_INCTAX_c = mean(INCTAX),
+    median_INCTAX_c = median(INCTAX),
+    sd_INCTAX_c = sd(INCTAX),
+    min_INCTAX_c = min(INCTAX),
+    max_INCTAX_c = max(INCTAX)
   )
 
-# Repeat the process for other columns
-
-# Replace NAs with zeros for 'Log_CORPINCTX'
-Rev$Log_CORPINCTX <- replace(Rev$Log_CORPINCTX, is.na(Rev$Log_CORPINCTX), 0)
-
-# Calculate summary statistics for group 'c'
-summary_c_Log_CORPINCTX <- Rev %>%
-  filter(group == "c") %>%
-  summarize(
-    n = n(),
-    mean_Log_CORPINCTX = mean(Log_CORPINCTX),
-    median_Log_CORPINCTX = median(Log_CORPINCTX),
-    sd_Log_CORPINCTX = sd(Log_CORPINCTX),
-    min_Log_CORPINCTX = min(Log_CORPINCTX),
-    max_Log_CORPINCTX = max(Log_CORPINCTX)
-  )
-
-# Repeat the process for other columns
-
-# Replace NAs with zeros for 'INCTAX'
-Rev$INCTAX <- replace(Rev$INCTAX, is.na(Rev$INCTAX), 0)
-
-# Calculate summary statistics for group 'c'
-summary_c_INCTAX <- Rev %>%
-  filter(group == "c") %>%
-  summarize(
-    n = n(),
-    mean_INCTAX = mean(INCTAX),
-    median_INCTAX = median(INCTAX),
-    sd_INCTAX = sd(INCTAX),
-    min_INCTAX = min(INCTAX),
-    max_INCTAX = max(INCTAX)
-  )
-
-# Repeat the process for other columns
-
-# Replace NAs with zeros for 'Log_INCTAX'
-Rev$Log_INCTAX <- replace(Rev$Log_INCTAX, is.na(Rev$Log_INCTAX), 0)
-
-# Calculate summary statistics for group 'c'
-summary_c_Log_INCTAX <- Rev %>%
-  filter(group == "c") %>%
-  summarize(
-    n = n(),
-    mean_Log_INCTAX = mean(Log_INCTAX),
-    median_Log_INCTAX = median(Log_INCTAX),
-    sd_Log_INCTAX = sd(Log_INCTAX),
-    min_Log_INCTAX = min(Log_INCTAX),
-    max_Log_INCTAX = max(Log_INCTAX)
-  )
-
-# Print the summary dataframes
-print(summary_c_CORPINCTX)
-print(summary_c_Log_CORPINCTX)
-print(summary_c_INCTAX)
-print(summary_c_Log_INCTAX)
-
-
-#For just individual income tax
-Rev_filtered <- Rev %>%
-  filter(INCTAX != 0)
-
-
-# Calculate summary statistics for group 'c' after replacing NAs with 0
-summary_c_INCTAX <- Rev %>%
-  filter(group == "c") %>%
-  summarize(
-    n = n(),
-    mean_INCTAX = mean(INCTAX),
-    median_INCTAX = median(INCTAX),
-    sd_INCTAX = sd(INCTAX),
-    min_INCTAX = min(INCTAX),
-    max_INCTAX = max(INCTAX)
-  )
-
-# Repeat the process for group 't'
-summary_t_INCTAX <- Rev %>%
+# Calculate summary statistics for group 't' for the INCTAX column
+summary_t_INCTAX <- Rev_filtered %>%
   filter(group == "t") %>%
   summarize(
-    n = n(),
-    mean_INCTAX = mean(INCTAX),
-    median_INCTAX = median(INCTAX),
-    sd_INCTAX = sd(INCTAX),
-    min_INCTAX = min(INCTAX),
-    max_INCTAX = max(INCTAX)
+    n_INCTAX = n(),
+    mean_INCTAX_t = mean(INCTAX),
+    median_INCTAX_t = median(INCTAX),
+    sd_INCTAX_t = sd(INCTAX),
+    min_INCTAX_t = min(INCTAX),
+    max_INCTAX_t = max(INCTAX)
   )
 
-# Calculate summary statistics for all observations
-summary_overall_INCTAX <- Rev %>%
+# Calculate summary statistics for all observations for the INCTAX column
+summary_overall_INCTAX <- Rev_filtered %>%
   summarize(
-    n = n(),
+    n_INCTAX = n(),
     mean_INCTAX = mean(INCTAX),
     median_INCTAX = median(INCTAX),
     sd_INCTAX = sd(INCTAX),
@@ -152,12 +76,27 @@ summary_overall_INCTAX <- Rev %>%
     max_INCTAX = max(INCTAX)
   )
 
-# Combine the summary statistics into a single dataframe for 'INCTAX'
+# Combine the summary statistics into a single dataframe for the INCTAX column
 summary_df_INCTAX <- bind_rows(
   data.frame(Group = "c", summary_c_INCTAX),
   data.frame(Group = "t", summary_t_INCTAX),
   data.frame(Group = "Overall", summary_overall_INCTAX)
 )
 
-# Print the summary dataframe for 'INCTAX'
+# Print the summary dataframe for the INCTAX column
 print(summary_df_INCTAX)
+
+# Repeat the process for the Log_INCTAX column and Log_CORPINCTX column similarly
+# Calculate summary statistics for group 'c' for the Log_INCTAX column
+# Calculate summary statistics for group 't' for the Log_INCTAX column
+# Calculate summary statistics for all observations for the Log_INCTAX column
+# Combine the summary statistics into a single dataframe for the Log_INCTAX column
+# Print the summary dataframe for the Log_INCTAX column
+
+# Calculate summary statistics for group 'c' for the Log_CORPINCTX column
+# Calculate summary statistics for group 't' for the Log_CORPINCTX column
+# Calculate summary statistics for all observations for the Log_CORPINCTX column
+# Combine the summary statistics into a single dataframe for the Log_CORPINCTX column
+# Print the summary dataframe for the Log_CORPINCTX column
+
+
