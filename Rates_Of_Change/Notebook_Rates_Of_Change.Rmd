@@ -1,0 +1,119 @@
+---
+title: "Untitled"
+output: html_document
+date: "2024-04-11"
+---
+
+```{r setup, include=FALSE}
+#Redo Callaway and Sant'Anna From Summer
+library(readxl)
+library(tidyr)
+library(dplyr)
+library(did)
+library(tidyverse)
+library(lmtest)
+library(caret)
+library(ggplot2)
+
+#New Directory
+setwd("~/Documents/GitHub/Rates_Of_Change")
+
+# Read in DF
+Rev <- read_xls("FinalGardner_AprilWorkshop24.xls")
+
+#Make CIT Log numeric
+Rev$Log_CORPINCTX <- as.numeric(Rev$Log_CORPINCTX)
+
+
+
+
+```
+
+
+
+Set-up for the Average, Log CIT
+```{r}
+#Create a New DF
+
+
+# Calculate average CORPINCTX by year for group 'c' along with standard error
+average_Log_c <- Rev %>%
+  filter(group == "c" & !is.na(Log_CORPINCTX) & Log_CORPINCTX !=0) %>%
+  group_by(year) %>%
+  summarise(average_Log_CORPINCTX_c = mean(Log_CORPINCTX),
+            std_err_c = sd(Log_CORPINCTX) / sqrt(n()))
+
+# Calculate average CORPINCTX by year for group 't' along with standard error
+average_Log_t <- Rev %>%
+  filter(group == "t") %>%
+  group_by(year) %>%
+  summarise(average_Log_CORPINCTX_t = mean(Log_CORPINCTX),
+            std_err_t = sd(Log_CORPINCTX) / sqrt(n()))
+
+# Merge the two dataframes by year
+average_Log_df <- merge(average_Log_c, average_Log_t, by = "year", all = TRUE)
+
+# Print the resulting dataframe
+print(average_Log_df)
+
+```
+
+Create Plot with Logs Control and Treatment Groups
+```{r}
+# Create the plot with Standard Error Bars
+ggplot(average_Log_df, aes(x = year)) +
+  geom_point(aes(y = average_Log_CORPINCTX_c, color = "Control Group"), size = 3) +
+  geom_errorbar(aes(y = average_Log_CORPINCTX_c, ymin = average_Log_CORPINCTX_c - std_err_c, ymax = average_Log_CORPINCTX_c + std_err_c, color = "Control Group"), width = 0.2) +
+  geom_point(aes(y = average_Log_CORPINCTX_t, color = "Treatment Group"), size = 3) +
+  geom_errorbar(aes(y = average_Log_CORPINCTX_t, ymin = average_Log_CORPINCTX_t - std_err_t, ymax = average_Log_CORPINCTX_t + std_err_t, color = "Treatment Group"), width = 0.2) +
+  geom_line(aes(y = average_Log_CORPINCTX_c, color = "Control Group"), linetype = "dashed") +
+  geom_line(aes(y = average_Log_CORPINCTX_t, color = "Treatment Group"), linetype = "dashed") +
+  labs(title = "Average Log Corporate Income Tax by Year for Control and Treatment Groups",
+       x = "Year",
+       y = "Average Log Corporate Income Tax") +
+  scale_color_manual(values = c("Control Group" = "blue", "Treatment Group" = "red"),
+                     labels = c("Control Group" = "Control", "Treatment Group" = "Treatment")) +
+  guides(color = guide_legend(title = "Groups")) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold")
+  )
+```
+
+
+```{r cars}
+# Create the plot, for the scatter with error bands shaded
+ggplot(average_Log_df, aes(x = year)) +
+  geom_line(aes(y = average_Log_CORPINCTX_c, color = "Control Group"), linetype = "dashed", size = 1) +
+  geom_ribbon(aes(ymin = average_Log_CORPINCTX_c - std_err_c, 
+                  ymax = average_Log_CORPINCTX_c + std_err_c, 
+                  fill = "Control Group"), alpha = 0.3) +
+  geom_line(aes(y = average_Log_CORPINCTX_t, color = "Treatment Group"), size = 1) +
+  geom_ribbon(aes(ymin = average_Log_CORPINCTX_t - std_err_t, 
+                  ymax = average_Log_CORPINCTX_t + std_err_t, 
+                  fill = "Treatment Group"), alpha = 0.3) +
+  labs(title = "Average Corporate Income Tax by Year for Control and Treatment Groups",
+       x = "Year",
+       y = "Average Corporate Income Tax in Millions") +
+  scale_color_manual(values = c("Control Group" = "blue", "Treatment Group" = "red"),
+                     labels = c("Control Group" = "Control- is checkered line", "Treatment Group" = "Treatment")) +
+  scale_fill_manual(values = c("Control Group" = "lightblue", "Treatment Group" = "lightpink"), guide = FALSE) +
+  guides(color = guide_legend(title = "Groups")) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold"))
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+
+  )
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
