@@ -188,6 +188,10 @@ ggplot(Rev, aes(x = year, y = Log_CORPINCTX, color = group, group = group)) +
   theme_minimal()
 
 
+
+
+
+
 #Create a New DF
 # Calculate average CORPINCTX by year for group 'c' along with standard error
 average_c <- Rev %>%
