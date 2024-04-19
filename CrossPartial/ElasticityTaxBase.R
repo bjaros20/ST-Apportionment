@@ -17,6 +17,8 @@ AllYears <- read.csv("SALT_App_Merge_2024.csv")
 
 #Clean Up All Years
 
+
+
 # Have different Match.  Need to match on State Acronym and State
 #Create Acronym Dataframe
 state_data <- data.frame(
