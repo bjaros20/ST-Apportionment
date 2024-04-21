@@ -16,6 +16,16 @@ App <- read_xlsx("SalesFactorWeights_ALLStates_Apri_2024.xlsx")
 AllYears <- read.csv("SALT_App_Merge_2024.csv")
 
 #Clean Up All Years
+#Remove Duplicate Columns
+AllYears_Clean <- AllYears %>%
+  distinct(State_Acronym, year, BUSLICTAX, .keep_all = T)
+
+#Filter to only have years 1976 through 2023
+AYC<- AllYears_Clean %>%
+  filter(year >=1976)
+
+#Remove X Column
+AYC2 <- select(AYC,c(-X,-sales))
 
 
 
@@ -63,3 +73,90 @@ SalesChange <-filterAppRev2 %>%
   filter(perc_change_Sales != 0 | lag(perc_change_Sales) != 0) %>%
   slice(c(which(perc_change_Sales != 0 | lag(perc_change_Sales) != 0) - 1,
           which(perc_change_Sales != 0 | lag(perc_change_Sales) != 0)))
+
+
+#Try to conduct merge of new App Weights and find Elasticity on all years.  This DF going foreward will not have event years, treatment, etc.  But, could remerge for information.
+
+#Merge on the more accurate Apportionment weights:
+AllYears_AppRev <-left_join(AYC2,App, by = c("state","year"))
+
+#Save this CSV:
+write_csv(AllYears_AppRev,"AppWeights_4_21_24_Rev.csv")
+
+
+#Create Percentage Change Columns
+ALLYears_AppRev2<- AllYears_AppRev %>%
+  group_by(state)%>%
+  arrange(state,year)%>%
+  mutate(perc_change_Sales = ((sales-lag(sales))/((sales+lag(sales))/2)))
+
+#(NOTE: may modify to remove duplicate years, or will remove the zero years later)
+AllYears_SalesChange <- ALLYears_AppRev2 %>%
+  filter(perc_change_Sales != 0 | lag(perc_change_Sales) != 0 | lead(perc_change_Sales) != 0 | lead(perc_change_Sales, 2) != 0) %>%
+  slice(c(which(perc_change_Sales != 0 | lag(perc_change_Sales) != 0 | lead(perc_change_Sales) != 0 | lead(perc_change_Sales, 2) != 0) - 1,
+          which(perc_change_Sales != 0 | lag(perc_change_Sales) != 0 | lead(perc_change_Sales) != 0 | lead(perc_change_Sales, 2) != 0),
+          which(perc_change_Sales != 0 | lag(perc_change_Sales) != 0 | lead(perc_change_Sales) != 0 | lead(perc_change_Sales, 2) != 0) + 1,
+          which(perc_change_Sales != 0 | lag(perc_change_Sales) != 0 | lead(perc_change_Sales) != 0 | lead(perc_change_Sales, 2) != 0) + 2))
+
+
+
+#Clean up the AllYears_SalesChange, there are duplicates. 
+AllYears_SalesChange_NoDup <- AllYears_SalesChange %>%
+  distinct(state, year, BUSLICTAX, .keep_all = T)
+
+#Find the Percentage in Revenue for CORPORATE INCOME
+RevPercChange_App<- AllYears_SalesChange_NoDup %>%
+  group_by(state)%>%
+  arrange(state,year)%>%
+  mutate(perc_change_CIT_Rev = ((CORPINCTX-lag(CORPINCTX))/((CORPINCTX+lag(CORPINCTX))/2)))
+
+#Save to CSV with Surrounding Years
+write.csv(RevPercChange_App,"SurroundingYears_PercChangeApp_Rev.csv")
+
+#Now filter to only have years were perc_Change_Sales Does not equal zero.
+PerChange <- RevPercChange_App %>%
+  group_by(state, year) %>%
+  filter(perc_change_Sales != 0) %>%
+  ungroup()
+
+OwnPrice_CIT <- PerChange %>%
+  arrange(state,year)%>%
+  mutate(OwnPartial_Elasticity= perc_change_CIT_Rev/perc_change_Sales)
+
+#Drop All NAs, removes Vermont and WV for recent Reforms
+OwnPrice_CIT <- OwnPrice_CIT %>%
+  filter(!is.na(OwnPartial_Elasticity))
+  
+
+#Create an Average for Each state
+Avg_Elasticity_State <- OwnPrice_CIT %>%
+  group_by(state) %>%
+  mutate(Avg_Elasticity = mean(OwnPartial_Elasticity))
+
+#Just keep Average Own Price for each state:
+filtered_RevPercChange_App <- Avg_Elasticity_State %>%
+  distinct(state, .keep_all = TRUE)
+
+
+#Plot the 37 Elasticities
+
+options(repr.plot.width = 10, repr.plot.height = 5)  # Adjust width and height as needed
+
+# Create the scatter plot
+plot <- ggplot(filtered_RevPercChange_App, aes(x = Avg_Elasticity, y = State_Acronym)) +
+  geom_point(aes(color = State_Acronym), size = 3) +
+  geom_segment(aes(xend = Avg_Elasticity, yend = State_Acronym, x = -2, y = State_Acronym), linetype = "dashed") +
+  geom_segment(aes(xend = Avg_Elasticity, yend = State_Acronym, x = 2, y = State_Acronym), linetype = "dashed") +
+  geom_text(aes(label = State_Acronym), vjust = 0, size = 4, position = position_dodge(width = 0.2)) +
+  labs(title = "Average Elasticity by State",
+       x = "Avg_Elasticity",
+       y = "") +
+  theme_minimal() +
+  theme(axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        legend.position = "none") +
+  coord_cartesian(xlim = c(-2.5, 2.5))  # Adjust x-axis limits
+
+# Display the plot
+print(plot)
