@@ -1,4 +1,4 @@
-# Measure the Elasticity Results for All the Tax Bases
+# Create Dataframe for Elasticity results for All the Tax Bases
 library(readxl)
 library(tidyr)
 library(dplyr)
@@ -47,7 +47,33 @@ write_csv(common_rows2,"elasticity_data_jmp.csv")
 
 
 #then Merge the rates to run the Three Way FE:
+rates <-read_xlsx("stateCIT_rates_1976_2023 copy.xlsx")
 
+#There are a couple of issues with the rate right now.  1976-2002 are in a different format than 2003 onwards.
+#There are also missing values for years.  For now,  I will use the historic rate over the more recent rate
 
+#start with formatting
+class(rates)
+str(rates)
 
+#The dates between 1976-2002 are characters. They also have a space before the first number
 
+#remove the space first
+
+#install stingr package
+install.packages("stringr")
+library(stringr)
+
+#Remove the space
+str_remove_all(rates," ")
+#Need to create a separate dataframe and merge back
+
+rates_1976_2002 <- rates %>% select("1976 ":"2002 ")
+colnames(rates)
+
+#Space after the year for 1976 through 2002.  
+nospace_rate <- as.data.frame(
+  apply(rates,2, function(x) gsub("\ ", "", x)))
+
+#it ran, so will try again.
+str(nospace_rate)
