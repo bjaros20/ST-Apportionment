@@ -227,7 +227,55 @@ print(summary_stats)
 #Summary stats above ran!!!!  I did this to resolve why rates were NA!!!
 
 
+#going for ChatGPT at this point
 
+# Custom function to fit the model and handle errors
+fit_model <- function(df) {
+  model <- try(lm(CORPINCTX ~ sales + factor(year) + rates, data = df), silent = TRUE)
+  if (inherits(model, "try-error")) {
+    return(NULL)
+  } else {
+    return(model)
+  }
+}
+
+# Split data by state and fit model to each subset
+models_list <- Elas_numeric_filled %>%
+  group_split(state) %>%
+  map(~ fit_model(.x))
+
+# Filter out NULL models
+models_list <- models_list[!sapply(models_list, is.null)]
+
+
+# Extract coefficients ensuring consistency
+coefficients_list <- lapply(models_list, function(model) {
+  if (!is.null(model) && !any(is.na(coef(model)))) {
+    coefs <- coef(model)
+    # Create a data frame from the coefficients
+    df <- data.frame(t(coefs))
+    # Add a column for the state
+    df$state <- names(models_list)[[which(models_list == model)]]
+    return(df)
+  } else {
+    return(NULL)
+  }
+})
+
+# Combine coefficients into a single data frame and unnest
+coefficients_df <- bind_rows(coefficients_list, .id = "state") %>%
+  pivot_longer(cols = -state, names_to = "term", values_to = "estimate") %>%
+  filter(!is.na(estimate))
+
+# Print the filtered coefficients data frame
+print(coefficients_df)
+
+# Optionally, print the summary of each valid model
+l_ply(models_list, function(model) {
+  if (!is.null(model) && !any(is.na(coef(model)))) {
+    print(summary(model))
+  }
+}, .print = TRUE)
 
 
 #apply coef to each model and return a data frame, works if just do one i.e. sales
@@ -239,7 +287,17 @@ ldply(models,coef)
 l_ply(models, summary, .print = TRUE)
 
 
+#RIGHT NOW< I AM GIVING UP ON THIS rout.  I am going to save a csv that has the cleaned and filled data
+#Then try to estimate all of the equations for just one state and try to create a loop from that.
 
+write.csv(Elas_numeric_filled,"filled_data_jmp.csv")
+
+write.csv(Elas_log,"filled_log_data_jmp.csv")
+
+#will also ensure the final df doesn't contain missing values for CIT, this was not an issue
+#elas_numeric_filled2 did not return a different number of observations.
+Elas_numeric_filled2 <- Elas_numeric_filled %>% 
+  filter(!is.na(CORPINCTX))
 
 
 #(B) Estimate a simple Log transform result
