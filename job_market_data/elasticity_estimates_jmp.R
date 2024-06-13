@@ -179,8 +179,56 @@ tidied_models <- fitted_models %>%
 # still received an error, different strategy, use lm and plm on states
 #break up the data by state, fit model to each piece and return
 
-models <- dlply(Elas_numeric_filled, "state", function(df)
-  lm(CORPINCTX~ sales, data = df))
+models2 <- dlply(Elas_numeric_filled, "state", function(df) {
+  lm(CORPINCTX~ sales + factor(year) + rates, data = df)})
+
+#going to try to filter out the NA results for sales, rate, year
+fit_model <- function(df) {
+  model <- try(lm(CORPINCTX ~ sales + factor(year) + rates, data = df), silent = TRUE)
+  if (inherits(model, "try-error")) {
+    return(NULL)
+  } else {
+    return(model)
+  }
+}
+
+# Apply the custom function to each subset of the data
+models3 <- dlply(Elas_numeric_filled, "state", fit_model)
+
+#filter out null models
+models3 <- models3[!sapply(models3, is.null)]
+
+# Extract coefficients ensuring consistency
+coefficients_list <- ldply(models3, function(model) {
+  coefs <- coef(model)
+  # Create a data frame from the coefficients
+  df <- data.frame(t(coefs))
+  # Add a column for the state
+  df$state <- attr(model, "call")$state
+  return(df)
+})
+
+
+#all of the rates are returning NA, which shouldn't be the case
+#trying to address it
+summary_stats <- Elas_numeric_filled %>%
+  dplyr::group_by(state, year) %>%
+  dplyr::summarise(
+    count = n(),
+    mean_rates = mean(rates, na.rm = TRUE),
+    sd_rates = sd(rates, na.rm = TRUE),
+    min_rates = min(rates, na.rm = TRUE),
+    max_rates = max(rates, na.rm = TRUE)
+  ) %>%
+  dplyr::ungroup()
+
+print(summary_stats)
+
+#Summary stats above ran!!!!  I did this to resolve why rates were NA!!!
+
+
+
+
 
 #apply coef to each model and return a data frame, works if just do one i.e. sales
 #need to find a way to do it for fixed effects. but this worked
