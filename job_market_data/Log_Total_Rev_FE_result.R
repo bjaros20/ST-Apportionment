@@ -12,6 +12,7 @@ library(did) # for running DiD
 library(caret) 
 library(plm) # for Two way FE
 library(fixest) # multiple FE
+library(broom) #extract coefficients for each state
 
 
 #JMP Directory
@@ -94,41 +95,66 @@ zz1 <- plm(log_totrev ~ factor(Post),Res)
 Reg <- lm(log_totrev ~ Post + year + state,Res)
 summary(Reg)
 
-#Simple reg with rate
+#Simple reg with rate, year and state NEED to be factors because they are categorical variables
+#This regression will not work
 Reg_rate <- lm(log_totrev ~ Post + year + state + rates, Res)
 summary(Reg_rate)
 #Coefficients:
 #Estimate Std. Error t value Pr(>|t|)    
 #(Intercept) -80.075922   3.457566 -23.160  < 2e-16 ***
 #  Post          0.293586   0.059633   4.923 9.18e-07 ***
- # year          0.047920   0.001733  27.658  < 2e-16 ***
+# year          0.047920   0.001733  27.658  < 2e-16 ***
 #  state        -0.006251   0.001487  -4.204 2.73e-05 ***
 #  rates        -0.016319   0.010532  -1.549    0.121    
 
 #simple reg, with log rate
-reg_lrate <-lm(log_totrev ~ Post + year + state + log(rates), Res)
+# reg_lrate <-lm(log_totrev ~ Post + year + state + log(rates), Res)
 #log rate won't run
 
-#Simple reg with rate, ran this and positive result for post went away
+
+#Simple Reg (w/o rate) (a) (i)
+Simple_reg <- lm(log_totrev ~ Post + factor(year) + factor(state), Res)
+summary(Simple_reg)
+#Result Post              0.01614    0.01386   1.165 0.244183 
+
+
+#Simple reg with rate, ran this and positive result for post went away (a) (ii)
 factor_rate <- lm(log_totrev ~ Post + factor(year) + factor(state) + rates, Res)
 summary(factor_rate)
 #result Post              0.015200   0.013753   1.105 0.269179 
 
-
-#try sales as numeric variable
-sales_reg <- lm(log_totrev ~ sales + factor (year)+ factor(state) + rates, Res)
-summary(sales_reg)
-#after running the above regression, got the following result for sales
-# sales             0.0006130  0.0002465   2.487 0.012958 *  
-# calculate the transform. .000613 is the log revenue in thousands, it is the B
-# e^B -1 = percentage change from increasing sales factor
-#e^.000613 - 1 = .000613 * 100= 0.0613 %, but that increase on billions is significant
-# this is on the weight of sales factor, so is multiplied by that scalar
+#Lost state name, creating df to get it back
+Res3 <- Res %>%
+  full_join(df, by = c("State_Acronym"))
 
 
-#For comparison, will try with log sales, #log rate will not run
-log_sales_reg <- lm(log_totrev ~ log(sales) + factor (year)+ factor(state) + rates, Res)
-summary(log_sales_reg)
-# result for log(sales)        0.05897    0.01525   3.868 0.000113 ***
+#He just wants to see, do these states increase their revenue post
+# I can try and break those coefficients up by state
+# Interaction Reg (with interaction between Post and state)
+Interaction_reg <- lm(log_totrev ~ Post * factor(State_Name) + factor(year), data = Res3)
+summary(Interaction_reg)
+
+# It is close, just trying to get Alabama
+# Set Alabama as the reference category
+Res3$State_Name <- relevel(factor(Res3$State_Name), ref = "Alabama")
+
+# Interaction Reg (with interaction between Post and state)
+Interaction_reg2 <- lm(log_totrev ~ Post * factor(State_Name) + factor(year), data = Res3)
+summary(Interaction_reg2)
+
+
+
+#Extract coefficients for each state using Broom
+tidy_model <- tidy(Interaction_reg2)
+
+# Filter the coefficients to get only those related to Post
+post_coefficients <- tidy_model %>%
+  filter(grepl("Post", term))
+
+print(post_coefficients)
+
+# The graph to accompany that would be the cannonical DiD (iii)
+
+
 
 
