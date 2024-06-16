@@ -181,7 +181,7 @@ print(post_coeffs_df)
 # Set Alabama as the reference category
 Res3$State_Name <- relevel(factor(Res3$State_Name), ref = "Alabama")
 
-# Interaction regression with interaction between Post and state
+# Interaction regression with interaction between Post and state, more explanation needs to be given for this interaction in github note.
 interaction_model <- lm(log_totrev ~ Post * factor(State_Name) + factor(year), data = Res3)
 summary(interaction_model)
 
@@ -192,7 +192,7 @@ tidy_interaction_model <- tidy(interaction_model)
 post_interaction_coefficients <- tidy_interaction_model %>%
   filter(grepl("Post", term))
 
-print(post_interaction_coefficients)
+print(post_interaction_coefficients) 
 
 # Create a data frame for the Post coefficients for each state
 post_coefficients_combined <- post_interaction_coefficients %>%
@@ -226,9 +226,9 @@ print(
 #time to save dataframe
 #save the coefficients for each state for regression 
 #Simple_reg <- lm(log_totrev ~ Post + factor(year) + factor(state), Res)
-write.csv(post_coefficients_combined,"state_post_dummy_total_rev._6_15_24.csv")
+write.csv(post_coefficients_combined,"state_post_dummy_total_rev._6_15_24.csv",row.names = FALSE)
 
 #save the Res3 dataframe, which was the foundation for the result.
-write.csv(Res3,"revenue_panel_total_rev_state_coef_result_6_15_24.csv")
+write.csv(Res3,"revenue_panel_total_rev_state_coef_result_6_15_24.csv",row.names = FALSE)
 
 #load these dataframes for next plot session
