@@ -153,8 +153,82 @@ post_coefficients <- tidy_model %>%
 
 print(post_coefficients)
 
+#Extracting the post coefficient for each state
+fit_state_model <- function(df) {
+  lm(log_totrev ~ Post + factor(year), data = df)
+}
+
+# Split data by state and fit model for each state
+state_models <- Res3 %>%
+  group_by(State_Name) %>%
+  group_map(~ fit_state_model(.x))
+
+# Extract coefficients for Post from each model
+post_coeffs <- lapply(state_models, function(model) {
+  tidy(model) %>% filter(term == "Post")
+})
+
+# Combine results into a single data frame
+post_coeffs_df <- bind_rows(post_coeffs, .id = "State_Name")
+
+print(post_coeffs_df)
+
+#Had an issue with every states Post:coefficient being relative to Alabama.
+#the following solution from ChatGPT disaggregated it from alabama and to a generic state factor
+
+
+#Attempt to dissaggregate the results from the Alabama coefficient
+# Set Alabama as the reference category
+Res3$State_Name <- relevel(factor(Res3$State_Name), ref = "Alabama")
+
+# Interaction regression with interaction between Post and state
+interaction_model <- lm(log_totrev ~ Post * factor(State_Name) + factor(year), data = Res3)
+summary(interaction_model)
+
+# Extract coefficients for each state using Broom
+tidy_interaction_model <- tidy(interaction_model)
+
+# Filter the coefficients to get only those related to Post
+post_interaction_coefficients <- tidy_interaction_model %>%
+  filter(grepl("Post", term))
+
+print(post_interaction_coefficients)
+
+# Create a data frame for the Post coefficients for each state
+post_coefficients_combined <- post_interaction_coefficients %>%
+  mutate(
+    State = ifelse(term == "Post", "Alabama", gsub("Post:factor\\(State_Name\\)", "", term)),
+    Post_Estimate = ifelse(term == "Post", estimate, estimate + post_interaction_coefficients$estimate[post_interaction_coefficients$term == "Post"]),
+    Post_Std_Error = std.error,
+    Post_Statistic = statistic,
+    Post_P_Value = p.value
+  ) %>%
+  select(State, Post_Estimate, Post_Std_Error, Post_Statistic, Post_P_Value)
+
+options(digits=9)
+print(post_coefficients_combined, n= Inf)
+
+
+#allowed for printing the dataframe to be converted more easily in Latex
+print(
+  post_coefficients_combined %>%
+    mutate(across(where(is.numeric), ~ format(.x, digits = 6, scientific = FALSE))),
+  n = Inf
+)
+
+#After this print, I am done with results for Latex purposes, now I need to create 
+#plots to interpret these coefficients.
+
+
 # The graph to accompany that would be the cannonical DiD (iii)
+#Plot the coefficients for each state from the posts_coefficients_combined df
 
+#time to save dataframe
+#save the coefficients for each state for regression 
+#Simple_reg <- lm(log_totrev ~ Post + factor(year) + factor(state), Res)
+write.csv(post_coefficients_combined,"state_post_dummy_total_rev._6_15_24.csv")
 
+#save the Res3 dataframe, which was the foundation for the result.
+write.csv(Res3,"revenue_panel_total_rev_state_coef_result_6_15_24.csv")
 
-
+#load these dataframes for next plot session
