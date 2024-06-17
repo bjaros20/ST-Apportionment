@@ -14,6 +14,8 @@ library(plm) # for Two way FE
 library(fixest) # multiple FE
 library(broom) #extract coefficients for each state
 
+# set seed
+set.seed(26)
 
 #JMP Directory
 setwd("~/Documents/GitHub/ST-Apportionment/job_market_data")
@@ -232,3 +234,65 @@ write.csv(post_coefficients_combined,"state_post_dummy_total_rev._6_15_24.csv",r
 write.csv(Res3,"revenue_panel_total_rev_state_coef_result_6_15_24.csv",row.names = FALSE)
 
 #load these dataframes for next plot session
+
+
+#Need to run a  joint significance test of the hypothesis that no state's value of tau is different from zero.
+#from here in the model, I am using Rev as the name of Res3.  Tried F- test, didn't work.  
+#Deleting from Script, will still be in history.
+
+
+## going to remove the state factor part of the state*post coefficient because it is creating
+#multicollinearity.
+
+#Attempt Chow test, did not work.  Deleting from script, will still be in history.
+
+
+
+# Fit the unrestricted model (with interactions)
+interaction_model <- lm(log_totrev ~ Post * factor(State_Name) + factor(year), data = Rev)
+
+# Fit the restricted model (no Post_Estimates)
+restricted_model <- lm(log_totrev ~ factor(State_Name) + factor(year), data = Rev)
+
+# Compute RSS for both models
+RSS_unrestricted <- sum(residuals(interaction_model)^2)
+RSS_restricted <- sum(residuals(restricted_model)^2)
+
+# Degrees of freedom
+df_unrestricted <- df.residual(interaction_model)
+df_restricted <- df.residual(restricted_model)
+num_restrictions <- df_restricted - df_unrestricted
+
+# Calculate F-statistic
+F_statistic <- ((RSS_restricted - RSS_unrestricted) / num_restrictions) / (RSS_unrestricted / df_unrestricted)
+
+# Calculate p-value
+p_value <- pf(F_statistic, num_restrictions, df_unrestricted, lower.tail = FALSE)
+
+# Print the results
+cat("F-statistic:", F_statistic, "\n")
+cat("p-value:", p_value, "\n")
+
+# Create a dataframe to store the results
+results_df <- data.frame(
+  RSS_unrestricted = RSS_unrestricted,
+  RSS_restricted = RSS_restricted,
+  df_unrestricted = df_unrestricted,
+  df_restricted = df_restricted,
+  F_statistic = F_statistic,
+  p_value = p_value
+)
+
+# Print the results dataframe
+print(results_df)
+
+
+# Determine significance
+if (p_value < 0.05) {
+  cat("The null hypothesis that no state's Post_Estimate is different from zero is rejected.\n")
+} else {
+  cat("The null hypothesis that no state's Post_Estimate is different from zero is not rejected.\n")
+}
+
+
+
