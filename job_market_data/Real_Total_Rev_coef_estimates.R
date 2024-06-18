@@ -43,7 +43,7 @@ write.csv(Rev1,"revenues_cpi_6_17_24.csv")
 
 #Just create real revenue for Total Revenue
 Rev2 <- Rev1 %>%
-mutate(real_totRev = TOTLTAX/Annual)
+mutate(real_totRev = (TOTLTAX/Annual)*100)
 
 #rename annual column to CPI
 Rev3 <- Rev2 %>%
