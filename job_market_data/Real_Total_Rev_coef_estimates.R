@@ -50,3 +50,5 @@ Rev3 <- Rev2 %>%
   rename(CPI_def=Annual)
 
 write.csv(Rev3,"revenue_cpi_total.csv")
+
+

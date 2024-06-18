@@ -295,4 +295,172 @@ if (p_value < 0.05) {
 }
 
 
+#Run the Two way FE regression again, except, do it with Real Revenue, loaded in Rev 3
+Rev4 <- Rev3 %>%
+  mutate(logRealTotRev=log(real_totRev))
 
+#Simple regression, real revenue
+Simple_reg <- lm(logRealTotRev ~ Post + factor(year) + factor(state), Rev4)
+summary(Simple_reg)
+#result Post              0.01614    0.01386   1.165  0.24418 
+
+
+#going to run earlier results, but with the real revenue
+
+# Interaction Reg (with interaction between Post and state)
+Interaction_Realreg <- lm(logRealTotRev ~ Post * factor(State_Name) + factor(year), data = Rev4)
+summary(Interaction_Realreg)
+
+# It is close, just trying to get Alabama
+# Set Alabama as the reference category
+Rev4$State_Name <- relevel(factor(Rev4$State_Name), ref = "Alabama")
+
+# Interaction Reg (with interaction between Post and state)
+Interaction_Realreg2 <- lm(logRealTotRev ~ Post * factor(State_Name) + factor(year), data = Rev4)
+summary(Interaction_Realreg2)
+
+
+#STOPPED HERE
+
+
+#Extract coefficients for each state using Broom
+tidy_model <- tidy(Interaction_Realreg2)
+
+# Filter the coefficients to get only those related to Post
+post_coefficients <- tidy_model %>%
+  filter(grepl("Post", term))
+
+print(post_coefficients)
+
+#Extracting the post coefficient for each state
+fit_state_model <- function(df) {
+  lm(logRealTotRev ~ Post + factor(year), data = Rev4)
+}
+
+# Split data by state and fit model for each state
+state_models <- Rev4 %>%
+  group_by(State_Name) %>%
+  group_map(~ fit_state_model(.x))
+
+# Extract coefficients for Post from each model
+post_coeffs <- lapply(state_models, function(model) {
+  tidy(model) %>% filter(term == "Post")
+})
+
+# Combine results into a single data frame
+post_coeffs_df <- bind_rows(post_coeffs, .id = "State_Name")
+
+print(post_coeffs_df)
+
+#Had an issue with every states Post:coefficient being relative to Alabama.
+#the following solution from ChatGPT disaggregated it from alabama and to a generic state factor
+
+
+#Attempt to dissaggregate the results from the Alabama coefficient
+# Set Alabama as the reference category
+Rev4$State_Name <- relevel(factor(Rev4$State_Name), ref = "Alabama")
+
+# Interaction regression with interaction between Post and state, more explanation needs to be given for this interaction in github note.
+interaction_model <- lm(logRealTotRev ~ Post * factor(State_Name) + factor(year), data = Rev4)
+summary(interaction_model)
+
+# Extract coefficients for each state using Broom
+tidy_interaction_model <- tidy(interaction_model)
+
+# Filter the coefficients to get only those related to Post
+post_interaction_coefficients <- tidy_interaction_model %>%
+  filter(grepl("Post", term))
+
+print(post_interaction_coefficients) 
+
+# Create a data frame for the Post coefficients for each state
+post_coefficients_combined <- post_interaction_coefficients %>%
+  mutate(
+    State = ifelse(term == "Post", "Alabama", gsub("Post:factor\\(State_Name\\)", "", term)),
+    Post_Estimate = ifelse(term == "Post", estimate, estimate + post_interaction_coefficients$estimate[post_interaction_coefficients$term == "Post"]),
+    Post_Std_Error = std.error,
+    Post_Statistic = statistic,
+    Post_P_Value = p.value
+  ) %>%
+  select(State, Post_Estimate, Post_Std_Error, Post_Statistic, Post_P_Value)
+
+options(digits=9)
+print(post_coefficients_combined, n= Inf)
+
+
+#allowed for printing the dataframe to be converted more easily in Latex
+print(
+  post_coefficients_combined %>%
+    mutate(across(where(is.numeric), ~ format(.x, digits = 6, scientific = FALSE))),
+  n = Inf
+)
+
+
+#Stata coefficient plot
+install.packages("coefplot")
+library(coefplot)
+
+#Coef plot of whole model
+coefplot(interaction_model)
+
+#Coef plot excluding coefficient
+coefplot(interaction_model, exclude = "(Intercept)")
+
+summary(interaction_model)
+
+
+#Coefficient plot for just year FE
+# Specify the coefficients to include
+coefficients_to_include <- c(
+  "factor(year)1977", "factor(year)1978", "factor(year)1979", 
+  "factor(year)1980", "factor(year)1981", "factor(year)1982", 
+  "factor(year)1983", "factor(year)1984", "factor(year)1985", 
+  "factor(year)1986", "factor(year)1987", "factor(year)1988", 
+  "factor(year)1989", "factor(year)1990", "factor(year)1991", 
+  "factor(year)1992", "factor(year)1993", "factor(year)1994", 
+  "factor(year)1995", "factor(year)1996", "factor(year)1997", 
+  "factor(year)1998", "factor(year)1999", "factor(year)2000", 
+  "factor(year)2001", "factor(year)2002", "factor(year)2003", 
+  "factor(year)2004", "factor(year)2005", "factor(year)2006", 
+  "factor(year)2007", "factor(year)2008", "factor(year)2009", 
+  "factor(year)2010", "factor(year)2011", "factor(year)2012", 
+  "factor(year)2013", "factor(year)2014", "factor(year)2015", 
+  "factor(year)2016", "factor(year)2017", "factor(year)2018", 
+  "factor(year)2019", "factor(year)2020", "factor(year)2021", 
+  "factor(year)2022"
+)
+
+#State FE
+coefficients_to_include_2 <- c(
+  "Post", "factor(State_Name)Alaska", "factor(State_Name)Arizona", 
+  "factor(State_Name)Arkansas", "factor(State_Name)California", 
+  "factor(State_Name)Colorado", "factor(State_Name)Connecticut", 
+  "factor(State_Name)Delaware", "factor(State_Name)Florida", 
+  "factor(State_Name)Georgia", "factor(State_Name)Hawaii", 
+  "factor(State_Name)Idaho", "factor(State_Name)Illinois", 
+  "factor(State_Name)Indiana", "factor(State_Name)Iowa", 
+  "factor(State_Name)Kansas", "factor(State_Name)Kentucky", 
+  "factor(State_Name)Louisiana", "factor(State_Name)Maine", 
+  "factor(State_Name)Maryland", "factor(State_Name)Massachusetts", 
+  "factor(State_Name)Michigan", "factor(State_Name)Minnesota", 
+  "factor(State_Name)Mississippi", "factor(State_Name)Missouri", 
+  "factor(State_Name)Montana", "factor(State_Name)Nebraska", 
+  "factor(State_Name)New Hampshire", "factor(State_Name)New Jersey", 
+  "factor(State_Name)New Mexico", "factor(State_Name)New York", 
+  "factor(State_Name)North Carolina", "factor(State_Name)North Dakota", 
+  "factor(State_Name)Ohio", "factor(State_Name)Oklahoma", 
+  "factor(State_Name)Oregon", "factor(State_Name)Pennsylvania", 
+  "factor(State_Name)Rhode Island", "factor(State_Name)South Carolina", 
+  "factor(State_Name)Tennessee", "factor(State_Name)Utah", 
+  "factor(State_Name)Vermont", "factor(State_Name)Virginia", 
+  "factor(State_Name)West Virginia", "factor(State_Name)Wisconsin"
+)
+
+
+# Create the coefficient plot including only the specified coefficients, year FE
+coefplot(interaction_model, coefficients=c(coefficients_to_include), title= "Coefficient Plot for Year Fixed Effects")
+        
+#State FE
+coefplot(interaction_model, coefficients=c(coefficients_to_include_2), title= "Coefficient Plot for State Fixed Effects")
+
+#chat gpt didn't work for the state policy dummy coefficient, save previous two plots when I return.
