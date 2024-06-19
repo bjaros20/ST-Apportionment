@@ -51,4 +51,6 @@ Rev3 <- Rev2 %>%
 
 write.csv(Rev3,"revenue_cpi_total.csv")
 
+#Completed Real total Post coefficients for 2WFE in previous script.
+#now complete simple DiD
 

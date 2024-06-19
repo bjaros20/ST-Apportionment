@@ -396,7 +396,7 @@ print(
 )
 
 
-#Stata coefficient plot
+#Stata coefficient plot, https://cran.r-project.org/web/packages/coefplot/coefplot.pdf
 install.packages("coefplot")
 library(coefplot)
 
@@ -461,6 +461,18 @@ coefficients_to_include_2 <- c(
 coefplot(interaction_model, coefficients=c(coefficients_to_include), title= "Coefficient Plot for Year Fixed Effects")
         
 #State FE
-coefplot(interaction_model, coefficients=c(coefficients_to_include_2), title= "Coefficient Plot for State Fixed Effects")
+coefplot(interaction_model, coefficients=c(coefficients_to_include_2), title= "Coefficient Plot for State Fixed Effects") +
+  theme_minimal()
 
 #chat gpt didn't work for the state policy dummy coefficient, save previous two plots when I return.
+# Still trying to get the post estimate plot, going to try this: https://interludeone.com/posts/2022-12-15-coef-plots/coef-plots#:~:text=Drawing%20coefficient%20plots%20in%20R%20and%20ggplot%20.&text=Recently%20a%20colleague%20asked%20how,use%20the%20command%20coefplot%20afterwards.
+
+post_coefficients_combined %>%
+  ggplot(aes(x = Post_Estimate, y = State)) +
+  geom_point() +
+  geom_vline(xintercept = 0, lty = 2) +
+  labs(x= "Value", y= "Coefficient", title= "Coefficient Plot for Policy by State") +
+  theme_minimal()  
+
+#need to restart R to get graphic viewer to load
+
