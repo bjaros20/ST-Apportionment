@@ -54,3 +54,6 @@ write.csv(Rev3,"revenue_cpi_total.csv")
 #Completed Real total Post coefficients for 2WFE in previous script.
 #now complete simple DiD
 
+write.csv(Rev4,"logTotRev_cpi.csv",row.names = FALSE)
+#save post_interactions_coefficients
+write.csv(post_coefficients_combined,"twoWFE_LogTotRev_result.csv",row.names = FALSE)

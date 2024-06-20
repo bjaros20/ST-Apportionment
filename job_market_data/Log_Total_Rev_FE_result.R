@@ -13,6 +13,7 @@ library(caret)
 library(plm) # for Two way FE
 library(fixest) # multiple FE
 library(broom) #extract coefficients for each state
+library(coefplot) #Stata coefficient plot, https://cran.r-project.org/web/packages/coefplot/coefplot.pdf
 
 # set seed
 set.seed(26)
@@ -294,6 +295,8 @@ if (p_value < 0.05) {
   cat("The null hypothesis that no state's Post_Estimate is different from zero is not rejected.\n")
 }
 
+#Rerun for closed R, state coefficient FE plot 6/19/24
+Rev3 <- read.csv("revenue_cpi_total.csv")
 
 #Run the Two way FE regression again, except, do it with Real Revenue, loaded in Rev 3
 Rev4 <- Rev3 %>%
@@ -396,10 +399,6 @@ print(
 )
 
 
-#Stata coefficient plot, https://cran.r-project.org/web/packages/coefplot/coefplot.pdf
-install.packages("coefplot")
-library(coefplot)
-
 #Coef plot of whole model
 coefplot(interaction_model)
 
@@ -465,6 +464,9 @@ coefplot(interaction_model, coefficients=c(coefficients_to_include_2), title= "C
   theme_minimal()
 
 #chat gpt didn't work for the state policy dummy coefficient, save previous two plots when I return.
+#had to close plot, loading DF for last FE plot, had to run lines 
+
+
 # Still trying to get the post estimate plot, going to try this: https://interludeone.com/posts/2022-12-15-coef-plots/coef-plots#:~:text=Drawing%20coefficient%20plots%20in%20R%20and%20ggplot%20.&text=Recently%20a%20colleague%20asked%20how,use%20the%20command%20coefplot%20afterwards.
 
 post_coefficients_combined %>%
@@ -474,5 +476,37 @@ post_coefficients_combined %>%
   labs(x= "Value", y= "Coefficient", title= "Coefficient Plot for Policy by State") +
   theme_minimal()  
 
-#need to restart R to get graphic viewer to load
+#Plot ran, will save and close
 
+#Now will try and plot after removing NA States
+#Filter out NA states
+na_states <- post_coefficients_combined %>%
+  filter(is.na(Post_Estimate)) %>%
+  pull(State)
+
+#Create filtered DF
+filtered_data <- post_coefficients_combined %>%
+  filter(!is.na(Post_Estimate))
+
+#Plot without NA states
+plot <- ggplot(filtered_data, aes(x = Post_Estimate, y = State)) +
+  geom_point() +
+  geom_vline(xintercept = 0, lty = 2) +
+  labs(x = "Value", y = "Coefficient", title = "Coefficient Plot for Policy by State- No NA States") +
+  theme_minimal()
+
+install.packages("grid")
+library(grid)
+# Add footnote
+footnote <- paste("States with NA estimates:", paste(na_states, collapse = ", "))
+plot <- plot + annotation_custom(
+  grob = textGrob(footnote, x = 0, y = 0, hjust = -0.1, vjust = -0.1, gp = gpar(fontsize = 10, col = "blue")),
+  xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf
+)
+
+print(plot)
+
+#save Rev4 sheet
+write.csv(Rev4,"logTotRev_cpi.csv",row.names = FALSE)
+#save post_interactions_coefficients
+write.csv(post_coefficients_combined,"twoWFE_LogTotRev_result.csv",row.names = FALSE)
