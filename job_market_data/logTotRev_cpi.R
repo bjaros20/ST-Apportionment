@@ -3,39 +3,69 @@
 #in a notebook, like Micah recommended.
 
 #Load Packages
+library(readxl)
 library(tidyr)
 library(dplyr)
 library(tidyverse)
 library(lmtest)
 library(ggplot2)
 library(did) # for running DiD
-install.packages("sjlabelled")
 library(sjlabelled) # req by https://rpubs.com/phle/r_tutorial_difference_in_differences
-install.packages("ggrepel")
 library(ggrepel) # req by ^
-install.packages("scales")
 library(scales) # req by ^
-install.packages("ggpubr")
 library(ggpubr) # req by ^
 library(plm)
 library(lmtest)
+library(lubridate) #convert date to year
 
-
-
-#JMP Directory
-setwd("~/Documents/GitHub/ST-Apportionment/job_market_data")
 
 # set seed
 set.seed(26)
 
+#Make the Log Real Collections per capita
+#Get Population data from state_tax_files Directory
+setwd("~/Documents/GitHub/state_tax_revenues/fred_excel_files_feb_2024")
+
+population <- read_xls("State_Resident_Population.xls",sheet="Annual")
+
+#convert the Date in the census sheet
+population2 <- population %>%
+  mutate(year=year(DATE))
+
+# have dataframe panel with year and date
+
+#load revenue dataframe
+#JMP Directory
+setwd("~/Documents/GitHub/ST-Apportionment/job_market_data")
+
 #Load Revenue panel
 Rev <- read.csv("logTotRev_cpi.csv")
+
 #note, row names =FALSE did not work, still have an X
 Rev <- Rev %>%
   select(-X)
 
+# filter population dataframe to make it easier to use
+population3 <- population2 %>%
+  filter(year>=1976)
 
+#Columns for each state are named "AKPOP" for Alaska population. Want to get just the acronym for each
+population4 <- population3 %>%
+  rename_with(.fn = ~ ifelse(grepl("^[A-Z]{2}POP$", .), substr(., 1, 2), .), 
+              .cols = everything())
 
+# Pivot population4 to long format to make it easier to join
+population4_long <- population4 %>%
+  pivot_longer(-c(DATE, year), names_to = "State_Acronym", values_to = "population")
+
+# Merge with Rev and create the new "population" column
+Rev1 <- Rev %>%
+  left_join(population4_long, by = c("State_Acronym" = "State_Acronym", "year" = "year"))
+
+Rev1 <- Rev1 %>%
+  select(-DATE)
+
+write.csv(Rev1,"rev_population.csv")
 
 #Estimate the simple DiD with the 2007 switchers
 #Anyone before needs to be filtered out (a, i)
