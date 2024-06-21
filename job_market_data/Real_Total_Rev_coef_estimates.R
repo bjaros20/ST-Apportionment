@@ -57,3 +57,4 @@ write.csv(Rev3,"revenue_cpi_total.csv")
 write.csv(Rev4,"logTotRev_cpi.csv",row.names = FALSE)
 #save post_interactions_coefficients
 write.csv(post_coefficients_combined,"twoWFE_LogTotRev_result.csv",row.names = FALSE)
+
