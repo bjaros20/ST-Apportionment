@@ -67,6 +67,7 @@ Rev1 <- Rev1 %>%
 
 write.csv(Rev1,"rev_population.csv")
 
+
 #Estimate the simple DiD with the 2007 switchers
 #Anyone before needs to be filtered out (a, i)
 #anyone who switches within 3 years 2008-2010, needs to be filtered out (a, ii)
