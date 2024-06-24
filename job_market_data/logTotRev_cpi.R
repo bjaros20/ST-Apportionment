@@ -67,6 +67,30 @@ Rev1 <- Rev1 %>%
 
 write.csv(Rev1,"rev_population.csv")
 
+#Get real, log CIT Tax for Bodenhorn
+RealCorp <- Rev1 %>%
+  mutate(real_cit = (CORPINCTX/CPI_def)*100)
+
+log_realCorp <- RealCorp %>%
+  mutate(logRealCitRev=log(real_cit))
+
+#Creates log real per capita, which I don't love.  Will try just real per capita
+per_capita <- log_realCorp %>%
+  mutate(Tot_logReal_capita=logRealTotRev/population) %>%
+  mutate(CIT_logReal_capita=logRealCitRev/population)
+
+real_perCapita <- per_capita %>%
+  mutate(real_totRev_capita = real_totRev/population)%>%
+  mutate(real_cit_capita = real_cit/population)
+
+#SHOULD BE NOTED, do not need to convert revenue per capita numbers multiplying by 1000
+#this is because the population numbers from the census are also in thousands
+
+
+#plot real per capita
+ggplot(real_perCapita2, aes(x=year,y=real_totRev_capita_conv, color=State_Acronym))+
+  geom_point()
+
 
 #Estimate the simple DiD with the 2007 switchers
 #Anyone before needs to be filtered out (a, i)
