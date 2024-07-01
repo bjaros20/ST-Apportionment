@@ -86,4 +86,6 @@ setup <- panel.matrices(filter_total,unit = "State_Acronym", time = "year", outc
 
 sum(is.na(filter_total))
 
+
+
 #for some reason it isn't running.  Will head to sleep and work on it tomorrow.
