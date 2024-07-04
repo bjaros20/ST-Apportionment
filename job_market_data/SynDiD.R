@@ -177,7 +177,19 @@ synthdid_plot(estimates, facet.vertical=FALSE,
 estimate = synthdid_estimate(setup$Y, setup$N0, setup$T0)
 
 top.controls = synthdid_controls(estimate)[1:10, , drop=FALSE]
+
 plot(estimate, spaghetti.units=rownames(top.controls)) + labs(x="Year",y="Real Total Revenue per Capita") + ggtitle("Synthetic DiD Spaghetti Plot- Indiana")
-                                                              
-                                                              
+#Attempt to make top controls darker
+base_plot <-plot(estimate, spaghetti.units=rownames(top.controls)) + labs(x="Year",y="Real Total Revenue per Capita") + ggtitle("Synthetic DiD Spaghetti Plot- Indiana")
+
+
+# Add ggplot2 layers to customize
+base_plot + 
+  labs(x = "Year", y = "Real Total Revenue per Capita") +
+  ggtitle("Synthetic DiD Spaghetti Plot - Indiana") +
+  theme_minimal() +
+  scale_color_manual(values = c("TRUE" = "black", "FALSE" = "grey")) +
+  scale_size_manual(values = c("TRUE" = 1, "FALSE" = 0.5))
+
+#DID not work, will submit spaghetti plots as is.
                                                               
