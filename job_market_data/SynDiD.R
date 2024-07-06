@@ -122,6 +122,12 @@ is_balanced2 <- is.pbalanced(pdata2)
 print(is_balanced2)
 #TRUE
 
+#save csv for just Indiana
+write.csv(filter_total2,"Indiana_sDiD.csv")
+
+
+#IIThis is what ws run for the sDiD.
+
 #Full steam ahead with https://synth-inference.github.io/synthdid/
 setup <- panel.matrices(filter_total2,unit = "State_Acronym", time = "year", outcome = "real_totRev_capita", treatment = "treatment")
 
@@ -193,3 +199,100 @@ base_plot +
 
 #DID not work, will submit spaghetti plots as is.
                                                               
+#III Create sDiD for switchers in 2007
+
+#Block treatment Archangelsky SynDiD for just 2007 switch and all states that don't 
+#switch before 2013.  Merge back together
+Switcher07 <-Rev %>% 
+  filter(year_effective==2007) 
+
+
+Control2 <- Rev %>%
+  filter(year_effective>2014 | is.na(year_effective))
+
+df <- Switcher07 %>%
+  bind_rows(Control2)
+
+#Now want to filter the df to just be until 2014
+df2 <- df %>%
+  filter(year<=2013)
+
+#Had a problem with the full df, therefore will filter down to something smaller
+# their df just has "State", "year", "packspercapita" and "treated" will do the same
+
+filter_total3 <- df2 %>%
+  select(State_Acronym,year,real_totRev_capita,treatment)
+
+#Check that the panel is balanced
+pdata1 <- pdata.frame(filter_total3, index = c("State_Acronym", "year"))
+
+#check balance
+is_balanced1 <- is.pbalanced(pdata1)
+print(is_balanced1)
+
+#Balanced, full speed ahead.
+#save df for 2007 switchers
+write.csv(filter_total3,"2007_Switchers_sDiD.csv")
+
+#full speed ahead on sDiD
+
+setup1 <- panel.matrices(filter_total3,unit = "State_Acronym", time = "year", outcome = "real_totRev_capita", treatment = "treatment")
+
+tau.hat = synthdid_estimate(setup1$Y, setup1$N0, setup1$T0)
+
+se = sqrt(vcov(tau.hat, method='placebo'))
+sprintf('point estimate: %1.2f', tau.hat)
+#[1] "point estimate: -70.93"
+sprintf('95%% CI (%1.2f, %1.2f)', tau.hat - 1.96 * se, tau.hat + 1.96 * se)
+#[1] "95% CI (-423.11, 281.26)"
+plot(tau.hat)+labs(x="Year",y="Real Total Revenue per Capita") + ggtitle("Synthetic DiD Plot- 2007 Switchers = Treated")
+
+#this is a much better plot with more variation
+
+#Summary stats for Indiana Syn control group
+print(summary(tau.hat))
+
+#control unit contribution plot
+synthdid_units_plot(tau.hat, se.method='placebo') +labs(x="Control States") + ggtitle("Unit Contribution Plot- 2007 Switchers")
+
+#checking for pre-treatment and parallel trends
+plot(tau.hat, overlay=1,  se.method='placebo') +labs(x="Year",y="Real Total Revenue per Capita") + ggtitle("Pre-Treatment and Parallel Trends Plot- 2007 Switchers")
+
+#shift control's trajectory towards Indiana
+plot(tau.hat, overlay=.8, se.method='placebo') +labs(x="Year",y="Real Total Revenue per Capita") + ggtitle("Shift Control Trajectory Towards Indiana Plot- 2007 Switchers")
+
+#Compare the SynDiD to other estimators, set-up
+tau.sc   = sc_estimate(setup1$Y, setup1$N0, setup1$T0)
+tau.did  = did_estimate(setup1$Y, setup1$N0, setup1$T0)
+estimates = list(tau.did, tau.sc, tau.hat)
+names(estimates) = c('Diff-in-Diff', 'Synthetic Control', 'Synthetic Diff-in-Diff')
+
+#print estimate differences:
+print(unlist(estimates))
+# Diff-in-Diff      Synthetic Control Synthetic Diff-in-Diff 
+# -167.93418              -38.22239              -70.92792 
+
+#the plots relative to each other
+synthdid_plot(estimates, se.method='placebo')+labs(x="Year",y="Real Total Revenue per Capita") + ggtitle("DiD v. Syn Control v. Syn DiD Plot- Syn 2007 Switchers")
+
+#Synthetic control units plot
+synthdid_units_plot(estimates, se.method='placebo')
+
+
+#Customize the plots
+synthdid_plot(estimates, facet.vertical=FALSE,
+              control.name='control', treated.name='Indiana',
+              lambda.comparable=TRUE, se.method = 'none',
+              trajectory.linetype = 1, line.width=.75, effect.curvature=-.4,
+              trajectory.alpha=.7, effect.alpha=.7,
+              diagram.alpha=1, onset.alpha=.7) +
+  theme(legend.position=c(.26,.07), legend.direction='horizontal',
+        legend.key=element_blank(), legend.background=element_blank(),
+        strip.background=element_blank(), strip.text.x = element_blank())
+
+#spaghetti plots, includes all states for just Indiana
+estimate = synthdid_estimate(setup1$Y, setup1$N0, setup1$T0)
+
+top.controls = synthdid_controls(estimate)[1:10, , drop=FALSE]
+
+plot(estimate, spaghetti.units=rownames(top.controls)) + labs(x="Year",y="Real Total Revenue per Capita") + ggtitle("Synthetic DiD Spaghetti Plot- 2007 Switchers")
