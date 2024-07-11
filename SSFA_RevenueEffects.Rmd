@@ -1,6 +1,15 @@
 ---
 title: "Tax Base Results- All Bases, Multiple Emp Approaches- SSFA"
 output: html_notebook
+date: "7-10-2024"
+#Description: I have up until this point organized all of my empirical results on sheets 
+#in folders.  Now, I want to centralize all of those results.
+# I am going to estimate the effects for all major tax bases 
+#(CIT, Income, Sales, Severance, Everything not CIT).  
+#I will estimate results with the following techniques: 2WFE, DiD, Synthetic Control, sDiD
+# I want to estimate all of the results for each state in Block Treatment for sDiD
+#Do this for each base, note and create major plots.  No need to mass produce other plots
+# that will not get used.
 ---
 
 This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
@@ -8,7 +17,32 @@ This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute
 Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
 
 ```{r}
-plot(cars)
+
+#Load Packages
+library(tidyr)
+library(dplyr)
+library(tidyverse)
+library(lmtest)
+library(ggplot2)
+library(did) # for running DiD
+library(plm)
+library(lmtest)
+library(synthdid)
+library(fixest)
+
+# set seed
+set.seed(26)
+#JMP Directory
+setwd("~/Documents/GitHub/ST-Apportionment/job_market_data")
+
+#Load Detrended, per capita, real revenue data
+Rev <- read.csv("detrend_per_capita.csv")
+
+#Remove X and X.1, REMOVE COLUMN when saving
+#note, row names =FALSE did not work, still have an X
+Rev <- Rev %>%
+  select(-X,-X.1)
+
 ```
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
