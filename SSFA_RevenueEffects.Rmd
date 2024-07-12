@@ -183,6 +183,9 @@ plot(tau.hat)+labs(x="Year",y="Real CIT Revenue per Capita") + ggtitle("Syntheti
 
 ```
 
+```{r}
+
+```
 
 
 
