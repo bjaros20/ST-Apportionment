@@ -43,7 +43,148 @@ Rev <- read.csv("detrend_per_capita.csv")
 Rev <- Rev %>%
   select(-X,-X.1)
 
+str(Rev)
+
+#Table
+table(Rev$State_Name,Rev$year_effective)
+
+#Load year effective data cleanly:
+install.packages("xlsx")
+library(readxl)
+SSFA <- read_excel("job_market_data/ssfa_data_jmp.xlsx")
+
+Switch <- SSFA %>%
+  select(state,year_effective) %>%
+  arrange(year_effective)
+
+# Tax bases I want to examine: CORPINCTX, CORPLICTAX, SLGRTAX, SVRNCTAX, TOTLTAX, INCTAX
+# All variations of that revenue: real, real per capita, detrended real per capita, 
+
+Severance <- Rev %>%
+  select(State_Acronym,year,SVRNCTAX,sales)
+
+
 ```
+
+```{r}
+# Run sDiD package -Archangelsky- Just Iowa
+#switch before 1991, 3 years post switch.  Tight window
+Iowa <-Rev %>% 
+  filter(State_Acronym=="IA") 
+
+Control <- Rev %>%
+  filter(year_effective>1991 | is.na(year_effective))
+
+df <- Iowa %>%
+  bind_rows(Control)
+
+#Now want to filter the df to just be until 1991
+df2 <- df %>%
+  filter(year<=1991)
+
+#filter down to smaller df
+IA_rtr_cap <- df2 %>%
+  select(State_Acronym,year,real_totRev_capita,treatment)
+
+#check data is balanced
+is.pbalanced(IA_rtr_cap)
+
+#need Iowa to be treated
+IA_treat <- IA_rtr_cap %>%
+  mutate(treatment = if_else(State_Acronym == "IA" & year >= 1978, 1, treatment))
+
+#Error running sDiD, so need to mutate columns:
+IA_treat <- IA_treat %>%
+  mutate(
+    State_Acronym = as.character(State_Acronym),
+    year = as.integer(year),
+    real_totRev_capita = as.numeric(real_totRev_capita),
+    treatment = as.integer(treatment)
+  )
+
+#sDiD
+Iowa_totrev <- panel.matrices(IA_treat,unit = "State_Acronym", time = "year", outcome = "real_totRev_capita", treatment = "treatment")
+
+tau.hat = synthdid_estimate(Iowa_totrev$Y, Iowa_totrev$N0, Iowa_totrev$T0)
+
+se = sqrt(vcov(tau.hat, method='placebo'))
+sprintf('point estimate: %1.2f', tau.hat)
+#[1] "point estimate: -6.89"
+sprintf('95%% CI (%1.2f, %1.2f)', tau.hat - 1.96 * se, tau.hat + 1.96 * se)
+#[1] "95% CI (-109.20, 95.43)"
+plot(tau.hat)+labs(x="Year",y="Real Total Revenue per Capita") + ggtitle("Synthetic DiD Plot- Iowa = Treated")
+
+```
+```{r}
+#Summary stats for Iowa Syn control group
+print(summary(tau.hat))
+
+```
+
+```{r}
+#Compare the SynDiD to other estimators, set-up
+tau.sc   = sc_estimate(Iowa_totrev$Y, Iowa_totrev$N0, Iowa_totrev$T0)
+tau.did  = did_estimate(Iowa_totrev$Y, Iowa_totrev$N0, Iowa_totrev$T0)
+estimates = list(tau.did, tau.sc, tau.hat)
+names(estimates) = c('Diff-in-Diff', 'Synthetic Control', 'Synthetic Diff-in-Diff')
+
+#print estimate differences:
+print(unlist(estimates))
+# Diff-in-Diff      Synthetic Control Synthetic Diff-in-Diff 
+# -21.789804             -40.495749              -6.887579 
+
+#the plots relative to each other
+synthdid_plot(estimates, se.method='placebo')+labs(x="Year",y="Real Total Revenue per Capita") + ggtitle("DiD v. Syn Control v. Syn DiD Plot- Syn Iowa")
+
+```
+
+```{r}
+#spaghetti plots, includes all states for just Indiana
+estimate = synthdid_estimate(Iowa_totrev$Y, Iowa_totrev$N0, Iowa_totrev$T0)
+
+top.controls = synthdid_controls(estimate)[1:10, , drop=FALSE]
+
+plot(estimate, spaghetti.units=rownames(top.controls)) + labs(x="Year",y="Real Total Revenue per Capita") + ggtitle("Synthetic DiD Spaghetti Plot- Iowa")
+```
+
+```{r}
+# Now do it for CIT
+#filter down to smaller df
+IA_cit_cap <- df2 %>%
+  select(State_Acronym,year,real_cit_capita,treatment)
+
+#check data is balanced
+is.pbalanced(IA_cit_cap)
+
+#need Iowa to be treated
+IA_cit_treat <- IA_cit_cap %>%
+  mutate(treatment = if_else(State_Acronym == "IA" & year >= 1978, 1, treatment))
+
+#Error running sDiD, so need to mutate columns:
+IA_cit_treat <- IA_cit_treat %>%
+  mutate(
+    State_Acronym = as.character(State_Acronym),
+    year = as.integer(year),
+    real_totRev_capita = as.numeric(real_cit_capita),
+    treatment = as.integer(treatment)
+  )
+
+#sDiD
+Iowa_cit_treat <- panel.matrices(IA_cit_treat,unit = "State_Acronym", time = "year", outcome = "real_cit_capita", treatment = "treatment")
+
+tau.hat = synthdid_estimate(Iowa_cit_treat$Y, Iowa_cit_treat$N0, Iowa_cit_treat$T0)
+
+se = sqrt(vcov(tau.hat, method='placebo'))
+sprintf('point estimate: %1.2f', tau.hat)
+#[1] "point estimate: -14.21"
+sprintf('95%% CI (%1.2f, %1.2f)', tau.hat - 1.96 * se, tau.hat + 1.96 * se)
+#[1] "95% CI (-215.96, 187.55)"
+plot(tau.hat)+labs(x="Year",y="Real CIT Revenue per Capita") + ggtitle("Synthetic DiD Plot- Iowa = Treated")
+
+```
+
+
+
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
 
