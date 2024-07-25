@@ -218,5 +218,125 @@ post_coeffs_df <- bind_rows(post_coeffs, .id = "state")
 print(post_coeffs_df)
 
 #REMOVES STATES THAT DON't HAVE TREATMENT, will try with simple regression tomorrow.
-
 write.csv(Sev3,"Severance_Cap_mutate.csv")
+
+#Replace Sales NA with 0
+Sev3$sales[is.na(Sev3$sales)] <- 0
+
+Sev3 <- Sev3 %>% select(-Sev_sales)
+
+#Create log Severance Tax Variable
+Sev3 <- Sev3 %>%
+  mutate(Sev_log = log(SVRNCTAX))
+
+# Sev log going to 0
+Sev3$Sev_log[is.na(Sev3$Sev_log)] <- 0
+
+
+
+
+#Just try simple regression, Sev per capita
+Reg_cap <- lm(Sev_cap ~ sales + factor(year) + factor(state), Sev3)
+summary(Reg_cap) 
+
+#interaction between State and Sales Factor Weight
+Int_reg_cap <- lm(Sev_cap~ sales * factor(state) + factor(year), data = Sev3)
+summary(Int_reg_cap)
+
+#Regression for Log Revenue
+Reg_log <- lm(Sev_log ~ sales + factor(year) + factor(state), Sev3)
+
+#Diagnostics for why it wasn't running
+sum(is.na(Sev3$Sev_log))
+sum(is.nan(Sev3$Sev_log))
+sum(is.infinite(Sev3$Sev_log))
+
+
+#WANT SUMMARY STATISTICS ON Sev_cap and Sev_log
+summary(Sev3$Sev_cap)
+#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# -Inf   0.000   8.227    -Inf  11.204  16.208 
+
+summary(Sev3$Sev_log)
+# Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+# 0.000     0.000     0.885   105.557    19.155 10093.810 
+
+#Simple log revenue wouldn't run, have to eliminate zero results. Saved those as dataframe.
+#Running as Sev4.
+infinite_values_df <- Sev3 %>%
+  filter(is.infinite(Sev_log))
+write.csv(infinite_values_df, "No_Sev_revenue.csv")
+
+#Run as Sev 4, removing those values
+Sev4 <- Sev3 %>%
+  filter(!is.infinite(Sev_log))
+
+#Run again
+Reg_log <- lm(Sev_log ~ sales + factor(year) + factor(state), Sev4)
+summary(Reg_log)
+
+
+#Going to try this again with just a switch dummy
+Sev5 <- Sev4 %>%
+  group_by(state) %>%
+  mutate(switch=ifelse(any(post_eff == 1), 1, 0))%>%
+  ungroup()
+
+#Any switch with NA, replace with 0
+Sev5$switch[is.na(Sev3$switch)] <- 0
+
+Sev5 <- Sev5 %>%
+  mutate(switch = ifelse(is.na(switch), 0, switch))
+
+#Average Sev_Cap Revenue whether switch or not
+avg_Sev_cap_by_switch <- Sev5 %>%
+  group_by(switch) %>%
+  summarize(avg_Sev_cap = mean(Sev_cap, na.rm = TRUE))
+
+# View the result
+print(avg_Sev_cap_by_switch)
+
+
+Sev5$state <- as.factor(Sev5$state)
+
+# Get states with switch = 1
+states_switch_1 <- Sev5 %>%
+  filter(switch == 1) %>%
+  distinct(state) %>%
+  pull(state)
+
+# Get states with switch = 0
+states_switch_0 <- Sev5 %>%
+  filter(switch == 0) %>%
+  distinct(state) %>%
+  pull(state)
+
+# Create a dataframe
+states_switch_df <- data.frame(
+  switch_1 = states_switch_1,
+  switch_0 = c(states_switch_0, rep(NA, length(states_switch_1) - length(states_switch_0)))
+)
+
+# View the result
+print(states_switch_0)
+
+# How likely is a state to switch, dependent upon their Sev tax rev per person
+# Fit a logistic regression model
+logistic_model <- glm(switch ~ Sev_cap, data = Sev5, family = binomial)
+
+# Summary of the model
+summary(logistic_model)
+
+exp(coef(logistic_model))
+
+
+#TRY with LOG
+# How likely is a state to switch, dependent upon their Sev tax rev per person
+# Fit a logistic regression model
+logistic_model1 <- glm(switch ~ Sev_log, data = Sev5, family = binomial)
+
+# Summary of the model
+summary(logistic_model1)
+
+exp(coef(logistic_model1))
+
