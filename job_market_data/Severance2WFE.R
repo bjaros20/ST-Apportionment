@@ -96,3 +96,116 @@ Sev2 <- Sev %>%
   full_join(SSFA2, by= c("state"))
 
 
+# Need to create Post, Treatment (no treatment columns, changing groups), and Relative Year columns
+
+# Create a Post Column, for year effective.
+Sev3 <- Sev2 %>%
+  group_by(state) %>%
+  mutate(post_eff = ifelse(year_effective > year, 0, 1)) %>%
+  ungroup()
+
+#Create a Relative Year column for the Event Study Plot
+# Create rel_year column
+Sev3$rel_year <- Sev3$year - Sev3$year_effective
+
+write.csv(Sev3,"Severance_2WFE.csv",row.names=FALSE)
+
+#Now run 2WFE
+Sev <-read.csv("Severance_2WFE.csv")
+
+library(readxl)
+#Load Files
+Pop <-read_excel("State_Resident_Population.xls",sheet=2)
+
+#Clean Up Year for Pop
+library(lubridate)
+
+Pop <- mutate(Pop$DATE,year= year(DATE))
+
+#Change full Date to Year
+#Pop$DATE <- as.Date(Pop$DATE)
+#transform(Pop, date=format(DATE "%d")),
+#           month= format(DATE, "%m"), year=format(DATE, "Y"))
+#Pop$Year <-substr(Pop$DATE, 1 ,4)
+
+#Get abbreviations for states
+state_abbreviations <- c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY")
+
+#ChatGPT Start
+
+
+
+# Reshape Pop dataframe to long format
+Pop_long <- Pop %>% gather(key = "State", value = "population", -DATE)
+
+# Extract year from DATE column in Pop_long dataframe
+Pop_long$DATE <- substr(Pop_long$DATE, 1, 4)
+
+# Merge dataframes on 'Year' and 'State' columns
+merged_df <- merge(Real_Rev, Pop_long, by.x = c("Year", "State"), by.y = c("DATE", "State"), all.x = TRUE)
+
+
+
+#Merge with population data
+
+pop <- read.csv("rev_population.csv")
+
+Rpop <-pop %>%
+  select()
+
+
+#Simple Reg (w/o rate) (a) (i)
+Simple_reg <- lm(log_totrev ~ Post + factor(year) + factor(state), Res)
+summary(Simple_reg)
+#Result Post              0.01614    0.01386   1.165 0.244183 
+
+
+#Simple reg with rate, ran this and positive result for post went away (a) (ii)
+factor_rate <- lm(log_totrev ~ Post + factor(year) + factor(state) + rates, Res)
+summary(factor_rate)
+
+
+#He just wants to see, do these states increase their revenue post
+# I can try and break those coefficients up by state
+# Interaction Reg (with interaction between Post and state)
+Interaction_reg <- lm(log_totrev ~ Post * factor(State_Name) + factor(year), data = Res3)
+summary(Interaction_reg)
+
+# It is close, just trying to get Alabama
+# Set Alabama as the reference category
+Res3$State_Name <- relevel(factor(Res3$State_Name), ref = "Alabama")
+
+# Interaction Reg (with interaction between Post and state)
+Interaction_reg2 <- lm(log_totrev ~ Post * factor(State_Name) + factor(year), data = Res3)
+summary(Interaction_reg2)
+
+
+
+#Extract coefficients for each state using Broom
+tidy_model <- tidy(Interaction_reg2)
+
+# Filter the coefficients to get only those related to Post
+post_coefficients <- tidy_model %>%
+  filter(grepl("Post", term))
+
+print(post_coefficients)
+
+#Extracting the post coefficient for each state
+fit_state_model <- function(df) {
+  lm(log_totrev ~ Post + factor(year), data = df)
+}
+
+# Split data by state and fit model for each state
+state_models <- Res3 %>%
+  group_by(State_Name) %>%
+  group_map(~ fit_state_model(.x))
+
+# Extract coefficients for Post from each model
+post_coeffs <- lapply(state_models, function(model) {
+  tidy(model) %>% filter(term == "Post")
+})
+
+# Combine results into a single data frame
+post_coeffs_df <- bind_rows(post_coeffs, .id = "State_Name")
+
+print(post_coeffs_df)
