@@ -119,64 +119,60 @@ Pop <-read_excel("State_Resident_Population.xls",sheet=2)
 
 #Clean Up Year for Pop
 library(lubridate)
-
 Pop <- mutate(Pop$DATE,year= year(DATE))
 
-#Change full Date to Year
-#Pop$DATE <- as.Date(Pop$DATE)
-#transform(Pop, date=format(DATE "%d")),
-#           month= format(DATE, "%m"), year=format(DATE, "Y"))
-#Pop$Year <-substr(Pop$DATE, 1 ,4)
 
 #Get abbreviations for states
 state_abbreviations <- c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY")
 
-#ChatGPT Start
-
-
-
 # Reshape Pop dataframe to long format
-Pop_long <- Pop %>% gather(key = "State", value = "population", -DATE)
+Pop_long <- Pop %>% gather(key = "state_abbreviations", value = "population", -DATE)
 
 # Extract year from DATE column in Pop_long dataframe
 Pop_long$DATE <- substr(Pop_long$DATE, 1, 4)
 
+#Need to create an acronym column which consists of first two characters of 
+#or remove POP from "state_abbreviations" column
+Pop_long$state_abbreviations <-sub("POP","",Pop_long$state_abbreviations)
+
 # Merge dataframes on 'Year' and 'State' columns
-merged_df <- merge(Real_Rev, Pop_long, by.x = c("Year", "State"), by.y = c("DATE", "State"), all.x = TRUE)
+Sev_pop <- merge(Sev, Pop_long, by.x = c("year", "State_Acronym"), by.y = c("DATE", "state_abbreviations"), all.x = TRUE)
+
+#save Severance Tax with Population
+write.csv(Sev_pop,"Severance_Population.csv")
 
 
+# PART II, create Severance Tax per capita, by state
+Sev2 <- Sev_pop %>%
+  mutate(Sev_cap=SVRNCTAX/population)
 
-#Merge with population data
+#now, filter for years 1976 through today
+Sev3 <- Sev2 %>%
+  filter(year>=1976)
 
-pop <- read.csv("rev_population.csv")
-
-Rpop <-pop %>%
-  select()
+#Replace NAs for per capita revenue with 0
+Sev3$Sev_cap[is.na(Sev3$Sev_cap)] <- 0
 
 
 #Simple Reg (w/o rate) (a) (i)
-Simple_reg <- lm(log_totrev ~ Post + factor(year) + factor(state), Res)
-summary(Simple_reg)
-#Result Post              0.01614    0.01386   1.165 0.244183 
+Simple_reg <- lm(Sev_cap ~ post_eff + factor(year) + factor(state), Sev3)
+summary(Simple_reg) 
 
+#Result   post_eff                    -24.3767    19.5580  -1.246 0.212807 
 
-#Simple reg with rate, ran this and positive result for post went away (a) (ii)
-factor_rate <- lm(log_totrev ~ Post + factor(year) + factor(state) + rates, Res)
-summary(factor_rate)
-
-
-#He just wants to see, do these states increase their revenue post
+#He just wants to see, is there a relationship between severance tax revenue 
+#treatment.
 # I can try and break those coefficients up by state
 # Interaction Reg (with interaction between Post and state)
-Interaction_reg <- lm(log_totrev ~ Post * factor(State_Name) + factor(year), data = Res3)
+Interaction_reg <- lm(Sev_cap~ post_eff * factor(state) + factor(year), data = Sev3)
 summary(Interaction_reg)
 
 # It is close, just trying to get Alabama
 # Set Alabama as the reference category
-Res3$State_Name <- relevel(factor(Res3$State_Name), ref = "Alabama")
+Sev3$state <- relevel(factor(Sev3$state), ref = "Alabama")
 
 # Interaction Reg (with interaction between Post and state)
-Interaction_reg2 <- lm(log_totrev ~ Post * factor(State_Name) + factor(year), data = Res3)
+Interaction_reg2 <- lm(Sev_cap ~ post_eff * factor(state) + factor(year), data = Sev3)
 summary(Interaction_reg2)
 
 
@@ -186,26 +182,41 @@ tidy_model <- tidy(Interaction_reg2)
 
 # Filter the coefficients to get only those related to Post
 post_coefficients <- tidy_model %>%
-  filter(grepl("Post", term))
+  filter(grepl("post_eff", term))
 
 print(post_coefficients)
 
 #Extracting the post coefficient for each state
+# Define the model function with added checks
 fit_state_model <- function(df) {
-  lm(log_totrev ~ Post + factor(year), data = df)
+  df <- df %>%
+    droplevels() %>%
+    filter(n_distinct(state) > 1, n_distinct(year) > 1) # Ensure factors have >1 level
+  
+  # Diagnostic message
+  cat("Processing state:", unique(df$state), "\n")
+  cat("Number of distinct states:", n_distinct(df$state), "\n")
+  cat("Number of distinct years:", n_distinct(df$year), "\n")
+  cat("Number of rows:", nrow(df), "\n\n")
 }
-
 # Split data by state and fit model for each state
-state_models <- Res3 %>%
-  group_by(State_Name) %>%
+state_models <- Sev3 %>%
+  group_by(state) %>%
   group_map(~ fit_state_model(.x))
+
+# Remove any NULL models (if any states had insufficient data)
+state_models <- state_models[!sapply(state_models, is.null)]
 
 # Extract coefficients for Post from each model
 post_coeffs <- lapply(state_models, function(model) {
-  tidy(model) %>% filter(term == "Post")
+  tidy(model) %>% filter(term == "post_eff")
 })
 
 # Combine results into a single data frame
-post_coeffs_df <- bind_rows(post_coeffs, .id = "State_Name")
+post_coeffs_df <- bind_rows(post_coeffs, .id = "state")
 
 print(post_coeffs_df)
+
+#REMOVES STATES THAT DON't HAVE TREATMENT, will try with simple regression tomorrow.
+
+write.csv(Sev3,"Severance_Cap_mutate.csv")
