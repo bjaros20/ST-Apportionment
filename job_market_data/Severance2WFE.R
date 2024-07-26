@@ -331,7 +331,7 @@ exp(coef(logistic_model))
 
 
 #TRY with LOG
-# How likely is a state to switch, dependent upon their Sev tax rev per person
+# How likely is a state to switch, dependent upon their Sev tax rev log
 # Fit a logistic regression model
 logistic_model1 <- glm(switch ~ Sev_log, data = Sev5, family = binomial)
 
@@ -340,3 +340,55 @@ summary(logistic_model1)
 
 exp(coef(logistic_model1))
 
+
+#Summary stats by state, log Severance Rev
+summary_stats <- Sev5 %>%
+  group_by(state) %>%
+  summarize(
+    Mean_Sev_log = mean(Sev_log, na.rm = TRUE),
+    Median_Sev_log = median(Sev_log, na.rm = TRUE),
+    SD_Sev_log = sd(Sev_log, na.rm = TRUE),
+    Min_Sev_log = min(Sev_log, na.rm = TRUE),
+    Max_Sev_log = max(Sev_log, na.rm = TRUE),
+    N = n()  # Number of observations for each state
+  )
+
+# Print the summary statistics dataframe
+print(summary_stats)
+
+#Summary Stats per capita
+summary_stats_cap <- Sev5 %>%
+  group_by(state) %>%
+  summarize(
+    Mean_Sev_cap = mean(Sev_cap, na.rm = TRUE),
+    Median_Sev_cap = median(Sev_cap, na.rm = TRUE),
+    SD_Sev_cap = sd(Sev_cap, na.rm = TRUE),
+    Min_Sev_cap = min(Sev_cap, na.rm = TRUE),
+    Max_Sev_cap = max(Sev_cap, na.rm = TRUE),
+    N = n()  # Number of observations for each state
+  )
+
+# Print the summary statistics dataframe
+print(summary_stats_cap)
+
+#Find logit Regression with just early states
+
+#Will reorder and create Sev6 to get Earliest 18 adopters
+Sev6 <- Sev5 %>%
+  filter(year_effective > 0) %>%  # Filter out rows with year_effective <= 0
+  arrange(year_effective) %>%
+  mutate(state_rank = rank(year_effective, ties.method = "first")) %>%
+  group_by(state) %>%
+  mutate(early_switch = if_else(min(state_rank) <= 1121, 1, 0)) %>%
+  ungroup() 
+
+
+#Early adopters logit
+logistic_model_early <- glm(early_switch ~ Sev_log, data = Sev6, family = binomial)
+
+# Summary of the model
+summary(logistic_model_early)
+
+exp(coef(logistic_model_early))
+
+write.csv(Sev6,"Sev_early_switch.csv")
