@@ -37,17 +37,17 @@ Corp <- Rev %>%
   select(State_Acronym,year,CORPINCTX,sales:log_CIT,year_effective,Post:rel_year,State_Name,real_cit,logRealCitRev,real_cit_capita,detrended_CIT_capita)
 write.csv(Corp,"CIT_sDID_loop.csv",row.names=FALSE)
 
+Corp <-read.csv("CIT_sDID_loop.csv")
+
 #filter Corporate
 filt_Corp <- Corp %>%
-  select(State_Acronym,year,year_effective,treatment,real_cit_capita,State_Name)
+  select(State_Acronym,year,year_effective,Post,real_cit_capita,State_Name)
 
 
 #Step 1- Create Dataframe for the state
-#groub_by(State_Acronym)
+#group_by(State_Acronym)
 #select state for treatment- start with earliest filt_Corp$year_effective
 #filter- remove all State_Acronym < year_effecive for treatment state
-
-
 
 #1a create a dataframe named after treatment state, call dataframe value in "State_Name"
 
@@ -55,29 +55,59 @@ filt_Corp <- Corp %>%
 result_list <- list()
 
 # Make a copy of the original dataframe to work with
-df <- filt_Corp
+original_df <- filt_Corp
+#counter variable, so as loop progresses, drops first state
+counter <- 1
 
-while (nrow(df) > 0) {
+#the break on 2022 as the treatment year is right before the counter after df created
+
+while (TRUE) {
+  #Reset to original each start
+  df <-filt_Corp
+  
   # Arrange by year_effective and select the first state for treatment
   df <- df %>% arrange(year_effective)
-  treatment_state <- df %>% slice(1) # Get the first row
+  
+  #counter variable for running the loop
+  if(df$year_effective[counter] >= 2022) {break}
+  
+  treatment_state <- df %>% slice(counter) 
   treatment_year <- treatment_state$year_effective
   treatment_state_name <- treatment_state$State_Name
   
+  #filter out prior treated states, but keep no treatment states
+  #first half of filter keeps no treatment states in, emoves states that were already treated
+  df <- df %>% 
+  filter(is.na(year_effective) | year_effective >= treatment_year)
+  
+  # removes states treated in same year
+  #the year_effective=treatment_year are filtered out if they are not 'treatment_state'
+  df <- df %>%
+  filter(is.na(year_effective) | (!(State_Name != treatment_state_name & year_effective == treatment_year)))
+          
+  
+  # Filter out rows with year <= 2 years after treatment_year
+  df <- df %>%
+    filter(year <= treatment_year + 2)
+  
+  #filter out any states that get treated within 2 years of treatment
+  df <- df %>%
+    filter(is.na(year_effective) | (!(year_effective > treatment_year & year_effective<= treatment_year + 2)))
+   
+    
   # Store the dataframe for this treatment state
   assign(treatment_state_name, df)
   result_list[[treatment_state_name]] <- df
   
-  # Remove all State_Acronyms with year_effective <= treatment_year
-  df <- df %>% filter(!(State_Acronym %in% treatment_state$State_Acronym & year_effective <= treatment_year))
+  # Check if the treatment year is 2022 or greater, break
+  if (treatment_year >= 2022) {break}
   
-  # Filter out State_Acronyms for 3 years after treatment_year
-  df <- df %>% filter(!(year_effective <= treatment_year + 3))
+  #increment counter
+  counter <-counter + 1
   
-  # Filter out rows with year <= 3 years after treatment_year
-  df <- df %>% filter(year > treatment_year + 3)
+  #empty dataframe break
+  if (nrow(df) == 0) {break}
 }
-
 
 
 
