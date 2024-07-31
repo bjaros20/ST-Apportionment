@@ -18,6 +18,9 @@ library(lmtest)
 library(synthdid)
 library(fixest)
 
+install.packages("ggthemes")
+library(ggthemes)
+
 # set seed
 set.seed(26)
 #JMP Directory
@@ -113,19 +116,23 @@ while (TRUE) {
 
 
 # Step 2- Use that dataframe to create point estimate, se, CI, & summary statistics for state
-#sDiD panel Matrice
-setup1 <- panel.matrices(filter_total3,unit = "State_Acronym", time = "year", outcome = "real_totRev_capita", treatment = "treatment")
 
+#Point estimate and summary statistics list
+point_estimate_list <- list()
+
+
+#sDiD panel Matrice
+Iowa_sDiD <- panel.matrices(Iowa,unit = "State_Acronym", time = "year", outcome = "real_cit_capita", treatment = "Post")
 #sDiD
-tau.hat = synthdid_estimate(setup1$Y, setup1$N0, setup1$T0)
-se = sqrt(vcov(tau.hat, method='placebo'))
+Iowa_tau.hat = synthdid_estimate(Iowa_sDiD$Y, Iowa_sDiD$N0, Iowa_sDiD$T0)
+se = sqrt(vcov(Iowa_tau.hat, method='placebo'))
 
 #point Estimate
-sprintf('point estimate: %1.2f', tau.hat)
+sprintf('point estimate: %1.2f', Iowa_tau.hat)
 #Confidence Interval
-sprintf('95%% CI (%1.2f, %1.2f)', tau.hat - 1.96 * se, tau.hat + 1.96 * se)
+sprintf('95%% CI (%1.2f, %1.2f)', Iowa_tau.hat - 1.96 * se, Iowa_tau.hat + 1.96 * se)
 #summary statistics
-print(summary(tau.hat))
+print(summary(Iowa_tau.hat))
 
 
 
@@ -134,7 +141,7 @@ print(summary(tau.hat))
 
 
 #Step 4- Plot Loop
-plot(tau.hat)+labs(x="Year",y="Real Total Revenue per Capita") + ggtitle("Synthetic DiD Plot- 2007 Switchers = Treated")
+plot(Iowa_tau.hat)+labs(x="Year",y="Real CIT Revenue per Capita") + ggtitle("Synthetic DiD Plot- Iowa = Treated") +theme_fivethirtyeight()
 
 
 
