@@ -165,24 +165,92 @@ for (state_name in names(result_list)) {
   # Summary statistics
   print(summary(current_tau_hat))
   
+  # Compute summary statistics for real_cit_capita
+  mean_real_cit_capita <- mean(current_df$real_cit_capita, na.rm = TRUE)
+  median_real_cit_capita <- median(current_df$real_cit_capita, na.rm = TRUE)
+  IQR_real_cit_capita <- IQR(current_df$real_cit_capita, na.rm = TRUE)
+  min_real_cit_capita <- min(current_df$real_cit_capita, na.rm = TRUE)
+  max_real_cit_capita <- max(current_df$real_cit_capita, na.rm = TRUE)
+  
+  # Print the summary statistics for real_cit_capita
+  cat(sprintf('Summary statistics for real_cit_capita in %s:\n', state_name))
+  cat(sprintf('Mean: %1.2f\n', mean_real_cit_capita))
+  cat(sprintf('Median: %1.2f\n', median_real_cit_capita))
+  cat(sprintf('IQR: %1.2f\n', IQR_real_cit_capita))
+  cat(sprintf('Min: %1.2f\n', min_real_cit_capita))
+  cat(sprintf('Max: %1.2f\n', max_real_cit_capita))
+  
   # Store the results in point_estimate_list
   point_estimate_list[[state_name]] <- list(
     point_estimate = current_tau_hat,
     se = se,
     CI_lower = current_tau_hat - 1.96 * se,
     CI_upper = current_tau_hat + 1.96 * se,
-    summary = summary(current_tau_hat)
+    summary = summary(current_tau_hat),
+    mean_real_cit_capita = mean_real_cit_capita,
+    median_real_cit_capita = median_real_cit_capita,
+    IQR_real_cit_capita = IQR_real_cit_capita,
+    min_real_cit_capita = min_real_cit_capita,
+    max_real_cit_capita = max_real_cit_capita
   )
+  
+  plot <- plot(current_tau_hat) +
+    labs(x = "Year", y = "Real Corporate Income Tax Revenue per Capita") +
+    ggtitle(paste("Synthetic Difference in Difference -", state_name, "= treated")) +
+    theme_fivethirtyeight() +
+    theme(
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 12,),
+      axis.text.x = element_text(size = 10),
+      axis.text.y = element_text(size = 10),
+      plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+      axis.line = element_line(linewidth = 0.5, colour = "black")
+    )
+  
+  # Save each plot as an image
+  ggsave(filename = paste0(state_name, "_sDiD_plot.png"), plot = plot)
    
 }
 
 
+plot <- plot(current_tau_hat) +
+  labs(x = "Year", y = "Real Corporate Income Tax Revenue per Capita") +
+  ggtitle(paste("Synthetic Difference in Difference -", state_name, "= treated")) +
+  theme_fivethirtyeight() +
+  theme(
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12,),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.line = element_line(linewidth = 0.5, colour = "black")
+  )
+
+print(plot)
 
 
-#Step 3- Plot Loop
+
+#Step 3- Syn DiD vs. DiD vs Synthetic Control Method Estimates and Plots
+
+
+
+
+
+#Step 4- Plot Loop, able to get the loop plotted and saved as part of point estimates
 plot(Iowa_tau.hat)+labs(x="Year",y="Real CIT Revenue per Capita") + ggtitle("Synthetic DiD Plot- Iowa = Treated") +theme_fivethirtyeight()
 
 
-
-
+for (state_name in names(point_estimate_list)) {
+  # Get the corresponding sDiD estimate
+  tau_hat <- point_estimate_list[[state_name]]
+  
+  # Plot the sDiD estimate using synthdid_plot
+  plot <- synthdid_plot(tau_hat) +
+    labs(x = "Year", y = "Real CIT Revenue per Capita") +
+    ggtitle(paste("Synthetic DiD Plot -", state_name, "= Treated")) +
+    theme_fivethirtyeight()
+  
+  # Optionally, save each plot as an image
+  ggsave(paste0(state_name, "_sDiD_plot.png"), plot = plot)
+}
 
