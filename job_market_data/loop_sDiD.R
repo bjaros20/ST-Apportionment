@@ -96,6 +96,10 @@ while (TRUE) {
   #filter out any states that get treated within 2 years of treatment
   df <- df %>%
     filter(is.na(year_effective) | (!(year_effective > treatment_year & year_effective<= treatment_year + 2)))
+  
+  #filter out Ohio after treatment_year >=2012, because OH eliminates CI in 2014
+  df <- df %>%
+    filter(!(treatment_year >= 2012 & State_Name == "Ohio"))
    
     
   # Store the dataframe for this treatment state
@@ -120,7 +124,6 @@ while (TRUE) {
 #Point estimate and summary statistics list
 point_estimate_list <- list()
 
-
 #sDiD panel Matrice
 Iowa_sDiD <- panel.matrices(Iowa,unit = "State_Acronym", time = "year", outcome = "real_cit_capita", treatment = "Post")
 #sDiD
@@ -136,11 +139,47 @@ print(summary(Iowa_tau.hat))
 
 
 
+#Try point estimate loop
+point_estimate_list <- list()
+
+#loop for cuts from dataframes that are not balanced
+cut_data_list <- list()
+
+# Loop over each dataframe in result_list
+for (state_name in names(result_list)) {
+  # Access the dataframe
+  current_df <- result_list[[state_name]]
+  
+  # Create the panel matrices for sDiD using synthdid
+  current_sDiD <- panel.matrices(current_df, unit = "State_Acronym", time = "year", outcome = "real_cit_capita", treatment = "Post")
+  
+  # Calculate the synthetic difference-in-differences estimate
+  current_tau_hat <- synthdid_estimate(current_sDiD$Y, current_sDiD$N0, current_sDiD$T0)
+  se <- sqrt(vcov(current_tau_hat, method = 'placebo'))
+  
+  # Print the point estimate and confidence interval
+  cat(sprintf('State: %s\n', state_name))
+  cat(sprintf('Point estimate: %1.2f\n', current_tau_hat))
+  cat(sprintf('95%% CI (%1.2f, %1.2f)\n', current_tau_hat - 1.96 * se, current_tau_hat + 1.96 * se))
+  
+  # Summary statistics
+  print(summary(current_tau_hat))
+  
+  # Store the results in point_estimate_list
+  point_estimate_list[[state_name]] <- list(
+    point_estimate = current_tau_hat,
+    se = se,
+    CI_lower = current_tau_hat - 1.96 * se,
+    CI_upper = current_tau_hat + 1.96 * se,
+    summary = summary(current_tau_hat)
+  )
+   
+}
 
 
 
 
-#Step 4- Plot Loop
+#Step 3- Plot Loop
 plot(Iowa_tau.hat)+labs(x="Year",y="Real CIT Revenue per Capita") + ggtitle("Synthetic DiD Plot- Iowa = Treated") +theme_fivethirtyeight()
 
 
