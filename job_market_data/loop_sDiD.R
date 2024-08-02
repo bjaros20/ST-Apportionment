@@ -18,6 +18,9 @@ library(lmtest)
 library(synthdid)
 library(fixest)
 
+install.packages('boot')
+library(boot)
+
 install.packages("ggthemes")
 library(ggthemes)
 
@@ -121,14 +124,17 @@ while (TRUE) {
 
 # Step 2- Use that dataframe to create point estimate, se, CI, & summary statistics for state
 
-#Point estimate and summary statistics list
+#Point estimate and summary statistics list, used as background for loop below.
 point_estimate_list <- list()
 
 #sDiD panel Matrice
 Iowa_sDiD <- panel.matrices(Iowa,unit = "State_Acronym", time = "year", outcome = "real_cit_capita", treatment = "Post")
 #sDiD
 Iowa_tau.hat = synthdid_estimate(Iowa_sDiD$Y, Iowa_sDiD$N0, Iowa_sDiD$T0)
+
 se = sqrt(vcov(Iowa_tau.hat, method='placebo'))
+#Integrating this step into loop below
+boot(Iowa_tau.hat,Iowa_sDiD,100)
 
 #point Estimate
 sprintf('point estimate: %1.2f', Iowa_tau.hat)
@@ -194,25 +200,109 @@ for (state_name in names(result_list)) {
     max_real_cit_capita = max_real_cit_capita
   )
   
-  plot <- plot(current_tau_hat) +
-    labs(x = "Year", y = "Real Corporate Income Tax Revenue per Capita") +
-    ggtitle(paste("Synthetic Difference in Difference -", state_name, "= treated")) +
-    theme_fivethirtyeight() +
-    theme(
-      axis.title.x = element_text(size = 12),
-      axis.title.y = element_text(size = 12,),
-      axis.text.x = element_text(size = 10),
-      axis.text.y = element_text(size = 10),
-      plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
-      axis.line = element_line(linewidth = 0.5, colour = "black")
-    )
   
-  # Save each plot as an image
-  ggsave(filename = paste0(state_name, "_sDiD_plot.png"), plot = plot)
-   
+  
+}
+
+#Loop with Bootstrap SE, t-stat and p-value
+point_estimate_list <- list()
+
+
+# Define the bootstrapping function
+synthdid_boot <- function(data, indices) {
+  # Resample the data by indices
+  resampled_data <- data[indices, ]
+  
+  # Ensure the resampled data is ordered by unit and time
+  resampled_data <- resampled_data[order(resampled_data$State_Acronym, resampled_data$year), ]
+  
+  # Create panel matrices for the resampled data
+  resampled_sDiD <- panel.matrices(resampled_data, unit = "State_Acronym", time = "year", outcome = "real_cit_capita", treatment = "Post")
+  
+  # Compute the synthdid estimate
+  tau_hat <- synthdid_estimate(resampled_sDiD$Y, resampled_sDiD$N0, resampled_sDiD$T0)
+  
+  # Return the point estimate
+  return(as.numeric(tau_hat))
+}
+
+# Loop over each dataframe in result_list
+for (state_name in names(result_list)) {
+  # Access the dataframe
+  current_df <- result_list[[state_name]]
+  
+  # Create the panel matrices for sDiD using synthdid
+  current_sDiD <- panel.matrices(current_df, unit = "State_Acronym", time = "year", outcome = "real_cit_capita", treatment = "Post")
+  
+  # Calculate the synthetic difference-in-differences estimate
+  current_tau_hat <- synthdid_estimate(current_sDiD$Y, current_sDiD$N0, current_sDiD$T0)
+  se <- sqrt(vcov(current_tau_hat, method = 'placebo'))
+  
+  # Perform bootstrapping with 100 resamples
+  # Define strata to resample within units
+  strata <- as.factor(current_df$State_Acronym)
+  
+  # Bootstrap function, resampling within strata (State_Acronym)
+  bootstrap_results <- boot(data = current_df, statistic = synthdid_boot, R = 100, strata = strata)
+  
+  # Extract the bootstrap standard error
+  bootstrap_se <- sd(bootstrap_results$t)
+  
+  # Calculate the t-statistic
+  t_statistic <- as.numeric(current_tau_hat) / se
+  
+  # Calculate the p-value
+  p_value <- 2 * pt(abs(t_statistic), df = nrow(current_df) - 1, lower.tail = FALSE)
+  
+  # Print the point estimate, confidence interval, t-statistic, and p-value
+  cat(sprintf('State: %s\n', state_name))
+  cat(sprintf('Point estimate: %1.2f\n', current_tau_hat))
+  cat(sprintf('95%% CI (%1.2f, %1.2f)\n', current_tau_hat - 1.96 * se, current_tau_hat + 1.96 * se))
+  cat(sprintf('Bootstrap standard error: %1.2f\n', bootstrap_se))
+  cat(sprintf('t-statistic: %1.2f\n', t_statistic))
+  cat(sprintf('p-value: %1.4f\n', p_value))
+  
+  # Summary statistics
+  print(summary(current_tau_hat))
+  
+  # Compute summary statistics for real_cit_capita
+  mean_real_cit_capita <- mean(current_df$real_cit_capita, na.rm = TRUE)
+  median_real_cit_capita <- median(current_df$real_cit_capita, na.rm = TRUE)
+  IQR_real_cit_capita <- IQR(current_df$real_cit_capita, na.rm = TRUE)
+  min_real_cit_capita <- min(current_df$real_cit_capita, na.rm = TRUE)
+  max_real_cit_capita <- max(current_df$real_cit_capita, na.rm = TRUE)
+  
+  # Print the summary statistics for real_cit_capita
+  cat(sprintf('Summary statistics for real_cit_capita in %s:\n', state_name))
+  cat(sprintf('Mean: %1.2f\n', mean_real_cit_capita))
+  cat(sprintf('Median: %1.2f\n', median_real_cit_capita))
+  cat(sprintf('IQR: %1.2f\n', IQR_real_cit_capita))
+  cat(sprintf('Min: %1.2f\n', min_real_cit_capita))
+  cat(sprintf('Max: %1.2f\n', max_real_cit_capita))
+  
+  # Store the results in point_estimate_list
+  point_estimate_list[[state_name]] <- list(
+    point_estimate = current_tau_hat,
+    se = se,
+    bootstrap_se = bootstrap_se,
+    CI_lower = current_tau_hat - 1.96 * se,
+    CI_upper = current_tau_hat + 1.96 * se,
+    t_statistic = t_statistic,
+    p_value = p_value,
+    summary = summary(current_tau_hat),
+    mean_real_cit_capita = mean_real_cit_capita,
+    median_real_cit_capita = median_real_cit_capita,
+    IQR_real_cit_capita = IQR_real_cit_capita,
+    min_real_cit_capita = min_real_cit_capita,
+    max_real_cit_capita = max_real_cit_capita
+  )
 }
 
 
+
+
+
+#remove plot for speed of loop
 plot <- plot(current_tau_hat) +
   labs(x = "Year", y = "Real Corporate Income Tax Revenue per Capita") +
   ggtitle(paste("Synthetic Difference in Difference -", state_name, "= treated")) +
@@ -226,8 +316,8 @@ plot <- plot(current_tau_hat) +
     axis.line = element_line(linewidth = 0.5, colour = "black")
   )
 
-print(plot)
-
+# Save each plot as an image
+ggsave(filename = paste0(state_name, "_sDiD_plot.png"), plot = plot)
 
 
 #Step 3- Syn DiD vs. DiD vs Synthetic Control Method Estimates and Plots
