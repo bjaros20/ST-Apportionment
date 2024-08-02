@@ -148,8 +148,6 @@ print(summary(Iowa_tau.hat))
 #Try point estimate loop
 point_estimate_list <- list()
 
-#loop for cuts from dataframes that are not balanced
-cut_data_list <- list()
 
 # Loop over each dataframe in result_list
 for (state_name in names(result_list)) {
@@ -200,31 +198,30 @@ for (state_name in names(result_list)) {
     max_real_cit_capita = max_real_cit_capita
   )
   
+  plot <- plot(current_tau_hat) +
+    labs(x = "Year", y = "Real Corporate Income Tax Revenue per Capita") +
+    ggtitle(paste("Synthetic Difference in Difference -", state_name, "= treated")) +
+    theme_fivethirtyeight() +
+    theme(
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 12,),
+      axis.text.x = element_text(size = 10),
+      axis.text.y = element_text(size = 10),
+      plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+      axis.line = element_line(linewidth = 0.5, colour = "black")
+    )
   
+  # Save each plot as an image
+  ggsave(filename = paste0(state_name, "_sDiD_plot.png"), plot = plot)
   
 }
 
-#Loop with Bootstrap SE, t-stat and p-value
+
+
+# Earlier loop with P-values and T-stat, and no plot
+
+# Initialize an empty list to store point estimates and statistics
 point_estimate_list <- list()
-
-
-# Define the bootstrapping function
-synthdid_boot <- function(data, indices) {
-  # Resample the data by indices
-  resampled_data <- data[indices, ]
-  
-  # Ensure the resampled data is ordered by unit and time
-  resampled_data <- resampled_data[order(resampled_data$State_Acronym, resampled_data$year), ]
-  
-  # Create panel matrices for the resampled data
-  resampled_sDiD <- panel.matrices(resampled_data, unit = "State_Acronym", time = "year", outcome = "real_cit_capita", treatment = "Post")
-  
-  # Compute the synthdid estimate
-  tau_hat <- synthdid_estimate(resampled_sDiD$Y, resampled_sDiD$N0, resampled_sDiD$T0)
-  
-  # Return the point estimate
-  return(as.numeric(tau_hat))
-}
 
 # Loop over each dataframe in result_list
 for (state_name in names(result_list)) {
@@ -238,16 +235,6 @@ for (state_name in names(result_list)) {
   current_tau_hat <- synthdid_estimate(current_sDiD$Y, current_sDiD$N0, current_sDiD$T0)
   se <- sqrt(vcov(current_tau_hat, method = 'placebo'))
   
-  # Perform bootstrapping with 100 resamples
-  # Define strata to resample within units
-  strata <- as.factor(current_df$State_Acronym)
-  
-  # Bootstrap function, resampling within strata (State_Acronym)
-  bootstrap_results <- boot(data = current_df, statistic = synthdid_boot, R = 100, strata = strata)
-  
-  # Extract the bootstrap standard error
-  bootstrap_se <- sd(bootstrap_results$t)
-  
   # Calculate the t-statistic
   t_statistic <- as.numeric(current_tau_hat) / se
   
@@ -258,7 +245,6 @@ for (state_name in names(result_list)) {
   cat(sprintf('State: %s\n', state_name))
   cat(sprintf('Point estimate: %1.2f\n', current_tau_hat))
   cat(sprintf('95%% CI (%1.2f, %1.2f)\n', current_tau_hat - 1.96 * se, current_tau_hat + 1.96 * se))
-  cat(sprintf('Bootstrap standard error: %1.2f\n', bootstrap_se))
   cat(sprintf('t-statistic: %1.2f\n', t_statistic))
   cat(sprintf('p-value: %1.4f\n', p_value))
   
@@ -284,7 +270,6 @@ for (state_name in names(result_list)) {
   point_estimate_list[[state_name]] <- list(
     point_estimate = current_tau_hat,
     se = se,
-    bootstrap_se = bootstrap_se,
     CI_lower = current_tau_hat - 1.96 * se,
     CI_upper = current_tau_hat + 1.96 * se,
     t_statistic = t_statistic,
@@ -301,23 +286,8 @@ for (state_name in names(result_list)) {
 
 
 
-
 #remove plot for speed of loop
-plot <- plot(current_tau_hat) +
-  labs(x = "Year", y = "Real Corporate Income Tax Revenue per Capita") +
-  ggtitle(paste("Synthetic Difference in Difference -", state_name, "= treated")) +
-  theme_fivethirtyeight() +
-  theme(
-    axis.title.x = element_text(size = 12),
-    axis.title.y = element_text(size = 12,),
-    axis.text.x = element_text(size = 10),
-    axis.text.y = element_text(size = 10),
-    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
-    axis.line = element_line(linewidth = 0.5, colour = "black")
-  )
 
-# Save each plot as an image
-ggsave(filename = paste0(state_name, "_sDiD_plot.png"), plot = plot)
 
 
 #Step 3- Syn DiD vs. DiD vs Synthetic Control Method Estimates and Plots
