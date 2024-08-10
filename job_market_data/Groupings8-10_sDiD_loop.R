@@ -41,9 +41,19 @@ Rev <- read.csv("detrend_per_capita.csv")
 Corp <-read.csv("CIT_sDID_loop.csv")
 
 #Set up dataframe for running, mutate for share of Nationwide CIT Revenue
+#Create a column that has the total annual CIT revenue for that year
+Rev1 <-Rev %>%
+  group_by(year)%>%
+  mutate(Ann_CORPINCTX = sum(CORPINCTX))
 
+Frac_CIT <- Rev1%>%
+  mutate(nat_share=CORPINCTX/Ann_CORPINCTX)
 
+#Create base dataframe that has nat_share as dependent variable.
+Filter_frac <-Frac_CIT %>%
+  select(State_Acronym,year,year_effective,Post,State_Name,nat_share)
 
+filt_Corp <-Filter_frac
 
 #Loop to create Dataframe for each state:
 
@@ -57,6 +67,8 @@ original_df <- filt_Corp
 counter <- 1
 
 #the break on 2022 as the treatment year is right before the counter after df created
+
+#something is wrong with the filter, might need to restart R.
 
 while (TRUE) {
   #Reset to original each start
@@ -73,7 +85,7 @@ while (TRUE) {
   treatment_state_name <- treatment_state$State_Name
   
   #filter out prior treated states, but keep no treatment states
-  #first half of filter keeps no treatment states in, emoves states that were already treated
+  #first half of filter keeps no treatment states in, 
   df <- df %>% 
     filter(is.na(year_effective) | year_effective >= treatment_year)
   
@@ -94,7 +106,6 @@ while (TRUE) {
   #filter out Ohio after treatment_year >=2012, because OH eliminates CI in 2014
   df <- df %>%
     filter(!(treatment_year >= 2012 & State_Name == "Ohio"))
-  
   
   # Store the dataframe for this treatment state
   assign(treatment_state_name, df)
