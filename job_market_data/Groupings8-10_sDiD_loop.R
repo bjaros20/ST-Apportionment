@@ -87,7 +87,7 @@ while (TRUE) {
   #filter out prior treated states, but keep no treatment states
   #first half of filter keeps no treatment states in, 
   df <- df %>% 
-    filter(is.na(year_effective) | year_effective >= treatment_year)
+    filter(is.na(year_effective) | is.na(State_Acronym) | year_effective >= treatment_year)
   
   # removes states treated in same year
   #the year_effective=treatment_year are filtered out if they are not 'treatment_state'
