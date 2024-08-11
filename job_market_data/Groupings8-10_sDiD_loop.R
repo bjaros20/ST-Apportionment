@@ -81,8 +81,8 @@ while (TRUE) {
   if(df$year_effective[counter] >= 2022) {break}
   
   treatment_state <- df %>% slice(counter) 
-  treatment_year <- treatment_state$year_effective
-  treatment_state_name <- treatment_state$State_Name
+  treatment_year <- treatment_state$year_effective[1]  # Ensures treatment_year is scalar
+  treatment_state_name <- treatment_state$State_Name[1]
   
   #filter out prior treated states, but keep no treatment states
   #first half of filter keeps no treatment states in, 
@@ -133,7 +133,7 @@ for (state_name in names(result_list)) {
   current_df <- result_list[[state_name]]
   
   # Create the panel matrices for sDiD using synthdid
-  current_sDiD <- panel.matrices(current_df, unit = "State_Acronym", time = "year", outcome = "real_sales_cap", treatment = "Post")
+  current_sDiD <- panel.matrices(current_df, unit = "State_Acronym", time = "year", outcome = "nat_share", treatment = "Post")
   
   # Calculate the synthetic difference-in-differences estimate
   current_tau_hat <- synthdid_estimate(current_sDiD$Y, current_sDiD$N0, current_sDiD$T0)
