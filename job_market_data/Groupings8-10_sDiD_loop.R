@@ -52,7 +52,7 @@ Frac_CIT <- Rev1%>%
 
 #Create base dataframe that has nat_share as dependent variable.
 Filter_frac <-Frac_CIT %>%
-  select(State_Acronym,year,year_effective,Post,State_Name,nat_share)
+  select(State_Acronym,year,year_effective,Post,treatment,State_Name,nat_share)
 
 filt_Corp <-Filter_frac
 
