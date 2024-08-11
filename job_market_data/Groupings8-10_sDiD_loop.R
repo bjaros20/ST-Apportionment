@@ -45,7 +45,8 @@ Corp <-read.csv("CIT_sDID_loop.csv")
 #Create a column that has the total annual CIT revenue for that year
 Rev1 <-Rev %>%
   group_by(year)%>%
-  mutate(Ann_CORPINCTX = sum(CORPINCTX))
+  mutate(Ann_CORPINCTX = sum(CORPINCTX))%>%
+  ungroup()
 
 Frac_CIT <- Rev1%>%
   mutate(nat_share=CORPINCTX/Ann_CORPINCTX)
@@ -82,8 +83,8 @@ while (TRUE) {
   if(df$year_effective[counter] >= 2022) {break}
   
   treatment_state <- df %>% slice(counter) 
-  treatment_year <- treatment_state$year_effective[1]  # Ensures treatment_year is scalar
-  treatment_state_name <- treatment_state$State_Name[1]
+  treatment_year <- treatment_state$year_effective
+  treatment_state_name <- treatment_state$State_Name
   
   #filter out prior treated states, but keep no treatment states
   #first half of filter keeps no treatment states in, 
@@ -122,6 +123,7 @@ while (TRUE) {
   if (nrow(df) == 0) {break}
 }
 
+#IT WAS THE UNGROUP FROM THE EARLIEST STEP
 
 #STEP 2, create just a point estimate loop with t-stat and confidence intervals
 
