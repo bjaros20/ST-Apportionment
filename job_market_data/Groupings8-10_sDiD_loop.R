@@ -25,8 +25,8 @@ library(ggplot2)
 library(did) # for running DiD
 library(plm)
 library(lmtest)
+install.packages("synthdid")
 library(synthdid)
-update.packages("synthdid")
 library(fixest)
 library(boot)
 library(ggthemes)
@@ -53,7 +53,7 @@ Frac_CIT <- Rev1%>%
 
 #Create base dataframe that has nat_share as dependent variable.
 Filter_frac <-Frac_CIT %>%
-  select(State_Acronym,year,year_effective,Post,treatment,State_Name,nat_share)
+  select(State_Acronym,year,year_effective,State_Name,nat_share,Post)
 
 filt_Corp <-Filter_frac
 
@@ -134,6 +134,10 @@ point_estimate_list <- list()
 for (state_name in names(result_list)) {
   # Access the dataframe
   current_df <- result_list[[state_name]]
+  
+  #Need to work through no variation step, THINK It is in groupings
+  current_df <- current_df %>% ungroup()
+  current_df <- as.data.frame(current_df)
   
   # Create the panel matrices for sDiD using synthdid
   current_sDiD <- panel.matrices(current_df, unit = "State_Acronym", time = "year", outcome = "nat_share", treatment = "Post")
