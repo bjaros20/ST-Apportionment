@@ -26,6 +26,7 @@ library(did) # for running DiD
 library(plm)
 library(lmtest)
 library(synthdid)
+update.packages("synthdid")
 library(fixest)
 library(boot)
 library(ggthemes)
