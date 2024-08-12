@@ -7,7 +7,7 @@
 #share CIT/Total Revenue, share CIT/CIT+Ind Income.
 
 #Therefore, going to try a few things:
-#(0) Share of nationwide CIT revenue. then try following.
+#(0) Share of nationwide CIT revenue. then try following. Check 0.
 #(1) Group by adoption.  Group early, middle and late adopters together, to see
 #how timing differs. (What dependent variable?)
 #(2) Level adoption alone, group by treatment level, direct and step-wise,
@@ -67,9 +67,6 @@ original_df <- filt_Corp
 #counter variable, so as loop progresses, drops first state
 counter <- 1
 
-#the break on 2022 as the treatment year is right before the counter after df created
-
-#something is wrong with the filter, might need to restart R.
 
 while (TRUE) {
   #Reset to original each start
@@ -162,4 +159,11 @@ for (state_name in names(result_list)) {
   #  print(summary(current_tau_hat))
 }
 
+#Run again later with more decimal places.
+#There are winners and losers from this policy.  What happens to share over time?
+#How can I control for rate?  The result with rate might go away.
+
+
+
 #Got the share result, now will re-run with different grouping or dependent variable.
+
