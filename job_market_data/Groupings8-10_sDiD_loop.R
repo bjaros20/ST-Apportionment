@@ -9,7 +9,7 @@
 #Therefore, going to try a few things:
 #(0) Share of nationwide CIT revenue. then try following.
 #(1) Group by adoption.  Group early, middle and late adopters together, to see
-#how timing differs.
+#how timing differs. (What dependent variable?)
 #(2) Level adoption alone, group by treatment level, direct and step-wise,
 #staggered by 10 percent, etc.
 
@@ -25,7 +25,6 @@ library(ggplot2)
 library(did) # for running DiD
 library(plm)
 library(lmtest)
-install.packages("synthdid")
 library(synthdid)
 library(fixest)
 library(boot)
@@ -162,3 +161,5 @@ for (state_name in names(result_list)) {
   # Summary statistics
   #  print(summary(current_tau_hat))
 }
+
+#Got the share result, now will re-run with different grouping or dependent variable.
