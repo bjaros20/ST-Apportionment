@@ -150,9 +150,9 @@ for (state_name in names(result_list)) {
   
   # Print the point estimate, confidence interval, t-statistic, and p-value
   cat(sprintf('State: %s\n', state_name))
-  cat(sprintf('Point estimate: %1.2f\n', current_tau_hat))
-  cat(sprintf('95%% CI (%1.2f, %1.2f)\n', current_tau_hat - 1.96 * se, current_tau_hat + 1.96 * se))
-  cat(sprintf('t-statistic: %1.2f\n', t_statistic))
+  cat(sprintf('Point estimate: %1.5f\n', current_tau_hat))
+  cat(sprintf('95%% CI (%1.4f, %1.4f)\n', current_tau_hat - 1.96 * se, current_tau_hat + 1.96 * se))
+  cat(sprintf('t-statistic: %1.3f\n', t_statistic))
   cat(sprintf('p-value: %1.4f\n', p_value))
   
   # Summary statistics
