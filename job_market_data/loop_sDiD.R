@@ -286,14 +286,41 @@ for (state_name in names(result_list)) {
 
 
 
+#attempt to get Summary statistics for just CIT per capita from filt_Corp
+
+
+
 #remove plot for speed of loop
 
 
 
 #Step 3- Syn DiD vs. DiD vs Synthetic Control Method Estimates and Plots
+mean_real_cit_capita <- mean(filt_Corp$real_cit_capita, na.rm = TRUE)
+median_real_cit_capita <- median(filt_Corp$real_cit_capita, na.rm = TRUE)
+IQR_real_cit_capita <- IQR(filt_Corp$real_cit_capita, na.rm = TRUE)
+min_real_cit_capita <- min(filt_Corp$real_cit_capita, na.rm = TRUE)
+max_real_cit_capita <- max(filt_Corp$real_cit_capita, na.rm = TRUE)
+
+# Print the summary statistics for real_cit_capita
+cat(sprintf('Mean: %1.3f\n', mean_real_cit_capita))
+cat(sprintf('Median: %1.3f\n', median_real_cit_capita))
+cat(sprintf('IQR: %1.3f\n', IQR_real_cit_capita))
+cat(sprintf('Min: %1.3f\n', min_real_cit_capita))
+cat(sprintf('Max: %1.3f\n', max_real_cit_capita))
 
 
+summary_stats <- filt_Corp %>%
+  filter(!is.na(real_cit_capita)) %>%  # Remove rows with NA in real_cit_capita
+  group_by(State_Name) %>%
+  summarize(
+    mean_real_cit_capita = mean(real_cit_capita, na.rm = TRUE),
+    median_real_cit_capita = median(real_cit_capita, na.rm = TRUE),
+    IQR_real_cit_capita = IQR(real_cit_capita, na.rm = TRUE),
+    min_real_cit_capita = min(real_cit_capita, na.rm = TRUE),
+    max_real_cit_capita = max(real_cit_capita, na.rm = TRUE)
+  )
 
+print(summary_stats,n = nrow(summary_stats))
 
 
 #Step 4- Plot Loop, able to get the loop plotted and saved as part of point estimates
