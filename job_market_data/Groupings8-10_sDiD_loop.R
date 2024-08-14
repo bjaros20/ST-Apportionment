@@ -160,7 +160,68 @@ for (state_name in names(result_list)) {
 }
 
 #Run again later with more decimal places.
+
+# Loop over each dataframe in result_list
+for (state_name in names(result_list)) {
+  # Access the dataframe
+  current_df <- result_list[[state_name]]
+  
+  # Ensure no grouping from previous operations
+  current_df <- current_df %>% ungroup()
+  current_df <- as.data.frame(current_df)
+  
+  # Group by State_Acronym and year, then compute summary statistics for nat_share across years
+  grouped_df <- current_df %>%
+    group_by(State_Acronym, year) %>%
+    summarise(
+      mean_nat_share = mean(nat_share, na.rm = TRUE),
+      median_nat_share = median(nat_share, na.rm = TRUE),
+      IQR_nat_share = IQR(nat_share, na.rm = TRUE),
+      min_nat_share = min(nat_share, na.rm = TRUE),
+      max_nat_share = max(nat_share, na.rm = TRUE)
+    ) %>%
+    ungroup()
+  
+  # Print the summary statistics for nat_share across years for each State_Acronym
+  cat(sprintf('Summary statistics for nat_share in %s across years:\n', state_name))
+  grouped_df %>%
+    group_by(State_Acronym) %>%
+    summarise(
+      mean_nat_share_across_years = mean(mean_nat_share, na.rm = TRUE),
+      median_nat_share_across_years = median(median_nat_share, na.rm = TRUE),
+      IQR_nat_share_across_years = mean(IQR_nat_share, na.rm = TRUE),  # Aggregating IQR by mean
+      min_nat_share_across_years = min(min_nat_share, na.rm = TRUE),
+      max_nat_share_across_years = max(max_nat_share, na.rm = TRUE)
+    ) %>%
+    ungroup() %>%
+    mutate(
+      print_output = sprintf(
+        'Mean: %1.4f\nMedian: %1.4f\nIQR: %1.4f\nMin: %1.4f\nMax: %1.4f\n',
+        mean_nat_share_across_years, 
+        median_nat_share_across_years,
+        IQR_nat_share_across_years,
+        min_nat_share_across_years, 
+        max_nat_share_across_years
+      )
+    ) %>%
+    pull(print_output) %>%
+    cat(sep = "\n")
+}
+
+
 #There are winners and losers from this policy.  What happens to share over time?
+#filter for nat_share in 1976 and nat_share in 2022
+bef_af <- Filter_frac %>%
+  filter(year==1976 | year==2022)
+write.csv(bef_af,"Share_CIT_bef_af.csv",row.names=FALSE)
+
+#Share doesn't work well with DiD or sDiD because it isn't growing over time. 
+#estimate two way fixed effect with share
+reg_share <- lm(nat_share ~ Post * factor(State_Name) + factor(year), filt_Corp)
+summary(reg_share)
+
+
+
 #How can I control for rate?  The result with rate might go away.
 
 
