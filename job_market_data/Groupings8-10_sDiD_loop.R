@@ -221,7 +221,6 @@ reg_share <- lm(nat_share ~ Post * factor(State_Name) + factor(year), filt_Corp)
 summary(reg_share)
 
 
-
 #How can I control for rate?  The result with rate might go away.
 
 

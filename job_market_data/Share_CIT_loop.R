@@ -146,6 +146,8 @@ for (state_name in names(result_list)) {
 }
 
 
+
+
 #Something is missing, and can't audit it on the plane.
 
 #FIGURED IT OUT... SOME OF THESE states are missing Sales Tax revenue, makes it an incomplete
