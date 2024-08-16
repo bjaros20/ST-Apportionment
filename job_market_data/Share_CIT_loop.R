@@ -31,17 +31,14 @@ Corp <-read.csv("CIT_sDID_loop.csv")
 Share <- Rev %>%
   select(State_Acronym,year,CORPINCTX,INCTAX,TLINCTAX,SLGRTAX,SALESTAX,TOTLTAX,year_effective,Post,real_cit_capita,State_Name,real_totRev_capita)
 
-#        sales:log_CIT,year_effective,Post:rel_year,State_Name,real_cit,logRealCitRev,real_cit_capita,detrended_CIT_capita)a
+#Remove sales tax because not sure what states to eliminate to make this work. 
+#rerunning share Corporate/ Corporate income + individual income
 
-real_sales_cap<-Rev %>%
-mutate(real_sales_cap= ((SLGRTAX*CPI_def)*100)/population)
+frac_inc <- Share %>%
+  mutate(frac_inc = CORPINCTX/(CORPINCTX+INCTAX))
 
 
-Filter_real <-real_sales_cap %>%
-  select(State_Acronym,year,year_effective,Post,State_Name,real_sales_cap,Post)
-
-filt_Corp <-Filter_real
-
+filt_Corp <-frac_inc
 
 #Create State Dataframes
 #create result list to store dataframe
@@ -120,8 +117,11 @@ for (state_name in names(result_list)) {
   # Access the dataframe
   current_df <- result_list[[state_name]]
   
+  #Drop states that have NA for ratio (like Alaska because no Income Tax)
+  current_df <- na.omit(current_df[, c("State_Acronym", "year", "frac_inc", "Post")])
+  
   # Create the panel matrices for sDiD using synthdid
-  current_sDiD <- panel.matrices(current_df, unit = "State_Acronym", time = "year", outcome = "real_sales_cap", treatment = "Post")
+  current_sDiD <- panel.matrices(current_df, unit = "State_Acronym", time = "year", outcome = "frac_inc", treatment = "Post")
   
   # Calculate the synthetic difference-in-differences estimate
   current_tau_hat <- synthdid_estimate(current_sDiD$Y, current_sDiD$N0, current_sDiD$T0)
@@ -135,9 +135,9 @@ for (state_name in names(result_list)) {
   
   # Print the point estimate, confidence interval, t-statistic, and p-value
   cat(sprintf('State: %s\n', state_name))
-  cat(sprintf('Point estimate: %1.2f\n', current_tau_hat))
-  cat(sprintf('95%% CI (%1.2f, %1.2f)\n', current_tau_hat - 1.96 * se, current_tau_hat + 1.96 * se))
-  cat(sprintf('t-statistic: %1.2f\n', t_statistic))
+  cat(sprintf('Point estimate: %1.4f\n', current_tau_hat))
+  cat(sprintf('95%% CI (%1.4f, %1.4f)\n', current_tau_hat - 1.96 * se, current_tau_hat + 1.96 * se))
+  cat(sprintf('t-statistic: %1.3f\n', t_statistic))
   cat(sprintf('p-value: %1.4f\n', p_value))
   
   # Summary statistics
@@ -145,8 +145,19 @@ for (state_name in names(result_list)) {
   
 }
 
+#Set-up Summary Statistics for frac_inc
+summary_stats <- frac_inc %>%
+  filter(!is.na(frac_inc)) %>%  # Remove rows with NA in frac_inc
+  group_by(State_Name) %>%
+  summarize(
+    mean_frac_inc = mean(frac_inc, na.rm = TRUE),
+    median_frac_inc = median(frac_inc, na.rm = TRUE),
+    IQR_frac_inc = IQR(frac_inc, na.rm = TRUE),
+    min_frac_inc = min(frac_inc, na.rm = TRUE),
+    max_frac_inc = max(frac_inc, na.rm = TRUE)
+  )
 
-
+print(summary_stats,n = nrow(summary_stats))
 
 #Something is missing, and can't audit it on the plane.
 
