@@ -50,6 +50,21 @@ Rev1 <-Rev %>%
 Frac_CIT <- Rev1%>%
   mutate(nat_share=CORPINCTX/Ann_CORPINCTX)
 
+#Get Summary Statistics for Real Total Tax Revenue per capita by State
+summary_stats <- Rev %>%
+  filter(!is.na(real_totRev_capita)) %>%  # Remove rows with NA in real_totRev_capita
+  group_by(State_Name) %>%
+  summarize(
+    mean_real_cit_capita = mean(real_totRev_capita, na.rm = TRUE),
+    median_real_cit_capita = median(real_totRev_capita, na.rm = TRUE),
+    IQR_real_cit_capita = IQR(real_totRev_capita, na.rm = TRUE),
+    min_real_cit_capita = min(real_totRev_capita, na.rm = TRUE),
+    max_real_cit_capita = max(real_totRev_capita, na.rm = TRUE)
+  )
+
+print(summary_stats,n = nrow(summary_stats))
+
+
 #Create base dataframe that has nat_share as dependent variable.
 Filter_frac <-Frac_CIT %>%
   select(State_Acronym,year,year_effective,State_Name,nat_share,Post)
