@@ -65,6 +65,22 @@ summary_stats <- Rev %>%
 print(summary_stats,n = nrow(summary_stats))
 
 
+#Summary Statistics for nat_share, Frac_CIT
+summary_stats <- Frac_CIT %>%
+  filter(!is.na(nat_share)) %>%  # Remove rows with NA in nat_share
+  group_by(State_Name) %>%
+  summarize(
+    mean_nat_share = mean(nat_share, na.rm = TRUE),
+    median_nat_share = median(nat_share, na.rm = TRUE),
+    IQR_nat_share = IQR(nat_share, na.rm = TRUE),
+    min_nat_share = min(nat_share, na.rm = TRUE),
+    max_nat_share = max(nat_share, na.rm = TRUE)
+  )
+
+print(summary_stats,n = nrow(summary_stats))
+
+
+
 #Create base dataframe that has nat_share as dependent variable.
 Filter_frac <-Frac_CIT %>%
   select(State_Acronym,year,year_effective,State_Name,nat_share,Post)
