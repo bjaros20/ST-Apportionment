@@ -25,22 +25,24 @@ setwd("~/Documents/GitHub/ST-Apportionment/job_market_data")
 #Load Detrended, per capita, real revenue data
 Rev <- read.csv("detrend_per_capita.csv")
 Corp <-read.csv("CIT_sDID_loop.csv")
+#future use naive_ci<-read.csv("naive_ci.csv")
 
 #Naive Corporate Income
 CI <-Rev %>%
   mutate(naive_ci=((CORPINCTX/rates)*100))
 
-write.csv(CI,"naive_ci.csv")
-
 #Set up dataframe for running, mutate for share of Nationwide Naive Corporate Income
 #Create a column that has the total annual CI revenue for that year
 CI1 <-CI %>%
+  filter(!is.na(naive_ci)) %>%
   group_by(year)%>%
   mutate(Ann_CORPINC = sum(naive_ci[is.finite(naive_ci)]))%>%
   ungroup()
 
+write.csv(CI1,"naive_ci.csv")
+
 #This computation is leading to Inf values for years 2009-2013, plotting histogram to find out more
-hist(CI$naive_ci, breaks = 50, main = "Distribution of naive_ci", xlab = "naive_ci")
+## hist(CI$naive_ci, breaks = 50, main = "Distribution of naive_ci", xlab = "naive_ci")
 #Found the inf values for Ohio when their rate goes to 0 between 2009 and 2013
 
 Frac_CI <- CI1%>%
@@ -126,8 +128,24 @@ for (state_name in names(result_list)) {
   # Access the dataframe
   current_df <- result_list[[state_name]]
   
+  #Make the tibble from the result list a dataframe, easier for panel.matrics function
+  current_df <- as.data.frame(current_df)
+  
   #Drop states that have NA for ratio (like Alaska because no Income Tax)
   current_df <- na.omit(current_df[, c("State_Acronym", "year", "nat_share_ci", "Post")])
+  
+  #eliminate Inf lines and the state that has them for estimation, like Ohio 2009-2013
+  states_with_inf <- current_df %>%
+    group_by(State_Acronym) %>%
+    filter(any(is.infinite(nat_share_ci))) %>%
+    pull(State_Acronym) %>%
+    unique()
+  
+  # Filter out those states from the dataframe
+  current_df <- current_df %>%
+    filter(!State_Acronym %in% states_with_inf)
+  
+
   
   # Create the panel matrices for sDiD using synthdid
   current_sDiD <- panel.matrices(current_df, unit = "State_Acronym", time = "year", outcome = "nat_share_ci", treatment = "Post")
@@ -156,7 +174,7 @@ for (state_name in names(result_list)) {
 
 #Summary Statistics for nat_share_ci
 summary_stats <- Frac_CI %>%
-  filter(!is.na(nat_share_ci)) %>%  # Remove rows with NA in nat_share
+  filter(!is.na(nat_share_ci) & is.finite(nat_share_ci)) %>%  # Remove rows with NA in nat_share
   group_by(State_Name) %>%
   summarize(
     mean_nat_share_ci = mean(nat_share_ci, na.rm = TRUE),
@@ -169,6 +187,5 @@ summary_stats <- Frac_CI %>%
 print(summary_stats,n = nrow(summary_stats))
 
 
-CI_miss<-CI %>%
-  filter(year >= 2009 & year <= 2013) %>%
-  summarize(any_na = any(is.na(naive_ci)))
+#May continue doing point estimates with Naive CI
+
