@@ -36,8 +36,12 @@ write.csv(CI,"naive_ci.csv")
 #Create a column that has the total annual CI revenue for that year
 CI1 <-CI %>%
   group_by(year)%>%
-  mutate(Ann_CORPINC = sum(naive_ci))%>%
+  mutate(Ann_CORPINC = sum(naive_ci[is.finite(naive_ci)]))%>%
   ungroup()
+
+#This computation is leading to Inf values for years 2009-2013, plotting histogram to find out more
+hist(CI$naive_ci, breaks = 50, main = "Distribution of naive_ci", xlab = "naive_ci")
+#Found the inf values for Ohio when their rate goes to 0 between 2009 and 2013
 
 Frac_CI <- CI1%>%
   mutate(nat_share_ci=naive_ci/Ann_CORPINC)
@@ -163,3 +167,8 @@ summary_stats <- Frac_CI %>%
   )
 
 print(summary_stats,n = nrow(summary_stats))
+
+
+CI_miss<-CI %>%
+  filter(year >= 2009 & year <= 2013) %>%
+  summarize(any_na = any(is.na(naive_ci)))
