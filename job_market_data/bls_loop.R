@@ -91,6 +91,71 @@ selected_columns <- c(
 # View the vector
 selected_columns
 
+#rename GeoName column to State_Name
+filter_bls <- filter_bls %>%
+  rename(State_Name = GeoName)
+
 #Now create a BLS loop, loop through the selected vectors
 
+filt_Corp <-filter_bls
 
+
+#Create State Dataframes
+#create result list to store dataframe
+result_list <- list()
+
+# Make a copy of the original dataframe to work with
+original_df <- filt_Corp
+#counter variable, so as loop progresses, drops first state
+counter <- 1
+
+while (TRUE) {
+  #Reset to original each start
+  df <-filt_Corp
+  
+  # Arrange by year_effective and select the first state for treatment
+  df <- df %>% arrange(year_effective)
+  
+  #counter variable for running the loop
+  if(df$year_effective[counter] >= 2022) {break}
+  
+  treatment_state <- df %>% slice(counter) 
+  treatment_year <- treatment_state$year_effective
+  treatment_state_name <- treatment_state$State_Name
+  
+  #filter out prior treated states, but keep no treatment states
+  #first half of filter keeps no treatment states in, 
+  df <- df %>% 
+    filter(is.na(year_effective) | is.na(State_Name) | year_effective >= treatment_year)
+  
+  # removes states treated in same year
+  #the year_effective=treatment_year are filtered out if they are not 'treatment_state'
+  df <- df %>%
+    filter(is.na(year_effective) | (!(State_Name != treatment_state_name & year_effective == treatment_year)))
+  
+  
+  # Filter out rows with year <= 2 years after treatment_year
+  df <- df %>%
+    filter(year <= treatment_year + 2)
+  
+  #filter out any states that get treated within 2 years of treatment
+  df <- df %>%
+    filter(is.na(year_effective) | (!(year_effective > treatment_year & year_effective<= treatment_year + 2)))
+  
+  #filter out Ohio after treatment_year >=2012, because OH eliminates CI in 2014
+  df <- df %>%
+    filter(!(treatment_year >= 2012 & State_Name == "Ohio"))
+  
+  # Store the dataframe for this treatment state
+  assign(treatment_state_name, df)
+  result_list[[treatment_state_name]] <- df
+  
+  # Check if the treatment year is 2022 or greater, break
+  if (treatment_year >= 2022) {break}
+  
+  #increment counter
+  counter <-counter + 1
+  
+  #empty dataframe break
+  if (nrow(df) == 0) {break}
+}
