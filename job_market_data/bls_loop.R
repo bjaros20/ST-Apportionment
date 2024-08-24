@@ -225,6 +225,36 @@ for (state_name in names(result_list)) {
   cat(sprintf('t-statistic: %1.3f\n', t_statistic))
   cat(sprintf('p-value: %1.4f\n', p_value))
   
-  # Summary statistics
-  #  print(summary(current_tau_hat))
 }
+
+#Summary Statistics for otalemploymentnumberofjobs
+summary_stats <- filter_bls %>%
+  filter(!is.na(Totalemploymentnumberofjobs) & is.finite(Totalemploymentnumberofjobs)) %>%  # Remove rows with NA in nat_share
+  group_by(State_Name) %>%
+  summarize(
+    mean = mean(Totalemploymentnumberofjobs, na.rm = TRUE),
+    median = median(Totalemploymentnumberofjobs, na.rm = TRUE),
+    IQR = IQR(Totalemploymentnumberofjobs, na.rm = TRUE),
+    min = min(Totalemploymentnumberofjobs, na.rm = TRUE),
+    max = max(Totalemploymentnumberofjobs, na.rm = TRUE)
+  )
+
+print(summary_stats,n = nrow(summary_stats))
+
+
+#Estimate TWFE from bls 
+# Remove rows with any missing values in the relevant columns
+filter_bls_clean <- filter_bls %>%
+  filter(!is.na(Totalemploymentnumberofjobs) & !is.na(Post) & 
+           !is.na(year) & !is.na(state_name))
+#Simple Reg (w/o rate) (a) (i)
+Simple_reg <- lm(Totalemploymentnumberofjobs ~ Post + factor(year) + factor(State_Name), data = filter_bls_clean)
+summary(Simple_reg) 
+
+#Result   Post                               151661      43038   3.524 0.000446 ***
+
+# I can try and break those coefficients up by state
+# Interaction Reg (with interaction between Post and state)
+Interaction_reg <- lm(Totalemploymentnumberofjobs~ Post * factor(State_Name) + factor(year), data = filter_bls_clean)
+summary(Interaction_reg)
+
