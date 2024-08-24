@@ -52,3 +52,5 @@ filt2_bls_transposed <- filt2_bls_wide %>%
 
 #One more step, and it is going to be there.
 write.csv(filt2_bls_transposed,"bls_transpose.csv")
+
+write.csv(filt2_bls_wide,"bls_wide.csv")
