@@ -54,3 +54,22 @@ filt2_bls_transposed <- filt2_bls_wide %>%
 write.csv(filt2_bls_transposed,"bls_transpose.csv")
 
 write.csv(filt2_bls_wide,"bls_wide.csv")
+
+clean <-filt2_bls_wide %>%
+  select(-LineCode,-IndustryClassification)
+
+#collapse the NAs
+clean_transpose <- clean %>%
+  arrange(GeoName,Region,year) 
+
+#filled the transpose out
+clean_transpose_filled <- clean_transpose %>%
+  group_by(GeoName, year) %>%
+  fill(everything(), .direction = "downup") %>%
+  ungroup()
+
+#This gave 33 duplicate rows, now will use distinct to eliminate duplicate rows
+clean_transpose_unique <- clean_transpose_filled %>%
+  distinct()
+
+write.csv(clean_transpose_unique,"bls_NoID_complete.csv")
