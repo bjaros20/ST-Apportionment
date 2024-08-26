@@ -258,3 +258,13 @@ summary(Simple_reg)
 Interaction_reg <- lm(Totalemploymentnumberofjobs~ Post * factor(State_Name) + factor(year), data = filter_bls_clean)
 summary(Interaction_reg)
 
+
+
+#Simple Reg (w/o rate) (a) (i)
+filter_bls_man <- filter_bls %>%
+  filter(!is.na(Manufacturing) & Manufacturing != "(D)" &
+           !is.na(Post) & !is.na(year) & !is.na(state_name))
+Man_reg <- lm(Manufacturing ~ Post + factor(year) + factor(State_Name), data = filter_bls_man)
+summary(Man_reg) 
+
+
