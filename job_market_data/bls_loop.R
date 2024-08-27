@@ -260,11 +260,76 @@ summary(Interaction_reg)
 
 
 
-#Simple Reg (w/o rate) (a) (i)
+#Simple Reg Manufacturing
 filter_bls_man <- filter_bls %>%
   filter(!is.na(Manufacturing) & Manufacturing != "(D)" &
            !is.na(Post) & !is.na(year) & !is.na(state_name))
 Man_reg <- lm(Manufacturing ~ Post + factor(year) + factor(State_Name), data = filter_bls_man)
 summary(Man_reg) 
 
+IntMan_reg <- lm(Manufacturing~ Post * factor(State_Name) + factor(year), data = filter_bls_man)
+summary(IntMan_reg)
 
+#Salaried workers- Wageandsalaryemployment
+filter_bls_sal <- filter_bls %>%
+  filter(!is.na(Wageandsalaryemployment) & Wageandsalaryemployment != "(D)" &
+           !is.na(Post) & !is.na(year) & !is.na(state_name))
+
+sal_reg <- lm(Wageandsalaryemployment ~ Post + factor(year) + factor(State_Name), data = filter_bls_sal)
+summary(sal_reg) 
+
+
+Intsal_reg <- lm(Wageandsalaryemployment~ Post * factor(State_Name) + factor(year), data = filter_bls_sal)
+summary(Intsal_reg)
+
+
+#detrend employment-total, manufacturing and salaried
+library(pracma)
+safe_detrend <- function(x) {
+  if (length(x) > 1) {
+    return(pracma::detrend(x, tt = "linear"))
+  } else {
+    return(rep(NA, length(x)))  # Return NA for groups that can't be detrended
+  }
+}
+
+bls_detrend <- filter_bls %>%
+  filter(!is.na(Wageandsalaryemployment) & Wageandsalaryemployment != "(D)" &
+           !is.na(Manufacturing) & Manufacturing != "(D)" & 
+           !is.na(Totalemploymentnumberofjobs) & !is.na(Post) & 
+           !is.na(year) & !is.na(state_name)) %>%
+  mutate(Totalemploymentnumberofjobs = as.numeric(Totalemploymentnumberofjobs),
+         Manufacturing = as.numeric(Manufacturing),
+         Wageandsalaryemployment = as.numeric(Wageandsalaryemployment)) %>%
+  group_by(State_Acronym) %>%
+  mutate(de_tot_jobs = safe_detrend(Totalemploymentnumberofjobs),
+         de_man_jobs = safe_detrend(Manufacturing),
+         de_salary = safe_detrend(Wageandsalaryemployment)) %>%
+  ungroup()
+  
+write.csv(bls_detrend,"bls_detrend.csv", row.names=FALSE)
+
+#Estimate these regressions via Simple Regression
+Simple_reg_de<- lm(de_tot_jobs ~ Post + factor(year) + factor(State_Name), data = bls_detrend)
+summary(Simple_reg_de)
+
+#Result   Post                               151661      43038   3.524 0.000446 ***
+
+# I can try and break those coefficients up by state
+# Interaction Reg (with interaction between Post and state)
+Interaction_reg_de<- lm(de_tot_jobs~ Post * factor(State_Name) + factor(year), data = bls_detrend)
+summary(Interaction_reg_de)
+
+#Manufacturing Detrended
+Man_reg_de <-lm(de_man_jobs ~ Post + factor(year)+factor(State_Name),data=bls_detrend)
+summary(Man_reg_de)
+
+Int_man_reg_de <- lm(de_man_jobs ~Post * factor(State_Name) + factor(year), data = bls_detrend)
+summary(Int_man_reg_de)
+
+#Salary detrended
+Sal_reg_De <-lm(de_salary ~ Post + factor(year)+factor(State_Name),data=bls_detrend)
+summary(Sal_reg_De)
+
+int_sal_reg_de <- lm(de_salary~Post * factor(State_Name) + factor(year), data = bls_detrend)
+summary(int_sal_reg_de)
