@@ -117,9 +117,46 @@ bls_detrend <-bls_per_cap %>%
 Simple_reg_de<- lm(de_tot_jobs ~ Post + factor(year) + factor(State_Name), data = bls_detrend)
 summary(Simple_reg_de)
 
-#Result   Post                               151661      43038   3.524 0.000446 ***
-
 # I can try and break those coefficients up by state
 # Interaction Reg (with interaction between Post and state)
 Interaction_reg_de<- lm(de_tot_jobs~ Post * factor(State_Name) + factor(year), data = bls_detrend)
 summary(Interaction_reg_de)
+
+
+
+# Create a vector with the specified column names
+selected_columns <- c(
+  "Totalemploymentnumberofjobs",
+  "Wageandsalaryemployment",
+  "Proprietorsemployment",
+  "Farmproprietorsemployment",
+  "Nonfarmproprietorsemployment2",
+  "Farmemployment",
+  "Nonfarmemployment",
+  "Privatenonfarmemployment",
+  "Forestryfishingandrelatedactivities",
+  "Miningquarryingandoilandgasextraction",
+  "Utilities",
+  "Construction",
+  "Manufacturing",
+  "Wholesaletrade",
+  "Retailtrade",
+  "Transportationandwarehousing",
+  "Information",
+  "Financeandinsurance",
+  "Realestateandrentalandleasing",
+  "Professionalscientificandtechnicalservices",
+  "Managementofcompaniesandenterprises",
+  "Administrativeandsupportandwastemanagementandremediationservices",
+  "Educationalservices",
+  "Healthcareandsocialassistance",
+  "Artsentertainmentandrecreation",
+  "Accommodationandfoodservices",
+  "Otherservicesexceptgovernmentandgovernmententerprises",
+  "Governmentandgovernmententerprises",
+  "Federalcivilian",
+  "Military",
+  "Stateandlocal",
+  "Stategovernment",
+  "Localgovernment"
+)
