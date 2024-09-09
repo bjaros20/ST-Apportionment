@@ -957,6 +957,14 @@ for (state_name in names(result_list)) {
 }
 
 
+#Loop DiD, Synthetic Control, and sDiD results for Naive Real Corporate Income per capita.
+# Want an aggregate plot of this occuring.
+#plot the significant states and get an average treatment effect across states
+#plot of that average.
 
+
+
+
+#then want groupings by adoption type as a supplemental result
 
 #Share of Naive Corporate Income
