@@ -36,6 +36,8 @@ write.csv(naive_ci,"naive_ci.csv", row.names = FALSE)
 
 
 #BELOW IS THE LOOP RUN FOR RESULT 3.8
+#estimate again, and run with one- sided (tailed test)
+
 # Next thing to estimate, Real Corporate Income, base year 1983-1984
 real_CI <- naive_ci%>%
   mutate(real_ci = (naive_ci/CPI_def)*100)
