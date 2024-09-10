@@ -42,9 +42,12 @@ write.csv(naive_ci,"naive_ci.csv", row.names = FALSE)
 real_CI <- naive_ci%>%
   mutate(real_ci = (naive_ci/CPI_def)*100)
 
+real_CI_cap <- real_CI %>%
+  mutate(real_ci_cap = real_ci/population)
+
 #Create base dataframe that has nat_share as dependent variable.
-Filter_frac <-real_CI %>%
-  select(State_Acronym,year,year_effective,State_Name,naive_ci,CPI_def,real_ci,Post)
+Filter_frac <-real_CI_cap %>%
+  select(State_Acronym,year,year_effective,State_Name,real_ci_cap,Post)
 
 filt_Corp <-Filter_frac
 
@@ -126,12 +129,12 @@ for (state_name in names(result_list)) {
   current_df <- as.data.frame(current_df)
   
   #Drop states that have NA for ratio (like Alaska because no Income Tax)
-  current_df <- na.omit(current_df[, c("State_Acronym", "year", "real_ci", "Post")])
+  current_df <- na.omit(current_df[, c("State_Acronym", "year", "real_ci_cap", "Post")])
   
   #eliminate Inf lines and the state that has them for estimation, like Ohio 2009-2013
   states_with_inf <- current_df %>%
     group_by(State_Acronym) %>%
-    filter(any(is.infinite(real_ci))) %>%
+    filter(any(is.infinite(real_ci_cap))) %>%
     pull(State_Acronym) %>%
     unique()
   
@@ -140,7 +143,7 @@ for (state_name in names(result_list)) {
     filter(!State_Acronym %in% states_with_inf)
   
   # Create the panel matrices for sDiD using synthdid
-  current_sDiD <- panel.matrices(current_df, unit = "State_Acronym", time = "year", outcome = "real_ci", treatment = "Post")
+  current_sDiD <- panel.matrices(current_df, unit = "State_Acronym", time = "year", outcome = "real_ci_cap", treatment = "Post")
   
   # Calculate the synthetic difference-in-differences estimate
   current_tau_hat <- synthdid_estimate(current_sDiD$Y, current_sDiD$N0, current_sDiD$T0)
@@ -164,16 +167,16 @@ for (state_name in names(result_list)) {
 }
 
 
-#Summary Statistics for real_ci
+#Summary Statistics for real_ci_cap
 summary_stats <- Filter_frac %>%
-  filter(!is.na(real_ci) & is.finite(real_ci)) %>%  # Remove rows with NA in nat_share
+  filter(!is.na(real_ci_cap) & is.finite(real_ci_cap)) %>%  # Remove rows with NA in nat_share
   group_by(State_Name) %>%
   summarize(
-    mean = mean(real_ci, na.rm = TRUE),
-    median = median(real_ci, na.rm = TRUE),
-    IQR = IQR(real_ci, na.rm = TRUE),
-    min = min(real_ci, na.rm = TRUE),
-    max = max(real_ci, na.rm = TRUE)
+    mean = mean(real_ci_cap, na.rm = TRUE),
+    median = median(real_ci_cap, na.rm = TRUE),
+    IQR = IQR(real_ci_cap, na.rm = TRUE),
+    min = min(real_ci_cap, na.rm = TRUE),
+    max = max(real_ci_cap, na.rm = TRUE)
   )
 
 print(summary_stats,n = nrow(summary_stats))
@@ -195,17 +198,17 @@ for (state_name in names(result_list)) {
     current_df <- as.data.frame(current_df)
     
     # Drop rows with NA for nat_share_ci and filter out states with Inf values
-    current_df <- na.omit(current_df[, c("State_Acronym", "year", "real_ci", "Post")])
+    current_df <- na.omit(current_df[, c("State_Acronym", "year", "real_ci_cap", "Post")])
     states_with_inf <- current_df %>%
       group_by(State_Acronym) %>%
-      filter(any(is.infinite(real_ci))) %>%
+      filter(any(is.infinite(real_ci_cap))) %>%
       pull(State_Acronym) %>%
       unique()
     current_df <- current_df %>%
       filter(!State_Acronym %in% states_with_inf)
     
     # Create the panel matrices for sDiD
-    current_sDiD <- panel.matrices(current_df, unit = "State_Acronym", time = "year", outcome = "real_ci", treatment = "Post")
+    current_sDiD <- panel.matrices(current_df, unit = "State_Acronym", time = "year", outcome = "real_ci_cap", treatment = "Post")
     
     # Calculate the synthetic difference-in-differences estimate
     current_tau_hat <- synthdid_estimate(current_sDiD$Y, current_sDiD$N0, current_sDiD$T0)
