@@ -44,7 +44,7 @@ real_CI <- naive_ci%>%
 
 #Create base dataframe that has nat_share as dependent variable.
 Filter_frac <-real_CI %>%
-  select(State_Acronym,year,year_effective,State_Name,real_ci,Post)
+  select(State_Acronym,year,year_effective,State_Name,naive_ci,CPI_def,real_ci,Post)
 
 filt_Corp <-Filter_frac
 
