@@ -149,8 +149,7 @@ for (state_name in names(result_list)) {
   current_tau_hat <- synthdid_estimate(current_sDiD$Y, current_sDiD$N0, current_sDiD$T0)
   se <- sqrt(vcov(current_tau_hat, method = 'placebo'))
   
-  #Have a point estimate impact on Real CI per capita
-  
+#  vcov.synthdid_estimate(current_tau_hat,method = 'bootstrap',replications = 500)
   
   # Calculate the t-statistic
   t_statistic <- as.numeric(current_tau_hat) / se
@@ -192,13 +191,19 @@ vcov.synthdid_estimate <- function(object, method = c("bootstrap", "jackknife", 
 
 #' Calculate the standard error of a synthetic diff in diff estimate. Deprecated. Use vcov.synthdid_estimate.
 #' @param ... Any valid arguments for vcov.synthdid_estimate
-#' @export synthdid_se
+# @export synthdid_se
 
-synthdid_se = function(...) { sqrt(vcov(...)) }
+synthdid_se = function(current_tau_hat,) { sqrt(vcov(...)) }
 
-
+ replications <-500
+ estimate <-current_tau_hat
+ setup<- current_sDiD
+ 
 # The bootstrap se: Algorithm 2 of Arkhangelsky et al.
 bootstrap_se = function(estimate, replications) { sqrt((replications-1)/replications) * sd(bootstrap_sample(estimate, replications)) }
+
+
+
 bootstrap_sample = function(estimate, replications) {
   setup = attr(estimate, 'setup')
   opts = attr(estimate, 'opts')
