@@ -328,6 +328,8 @@ per_chan_real_ci <- real_CI %>%
   do(calculate_percentage_change(.)) %>%
   ungroup()
 
+write.csv(per_chan_real_ci,"Percent_Change_real_CI.csv",row.names = FALSE)
+
 #That function seems to have worked, not sure why lag from dplyr wasn't working.
 
 
