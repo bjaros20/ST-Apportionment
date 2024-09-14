@@ -2,7 +2,10 @@
 #Use the rate and collections to create a Naive Corporate Income Calculation
 #Then estimate sDiD for fraction of Corporate Income
 
-#Load Packages
+install.packages(c("tidyr", "dplyr", "tidyverse", "lmtest", "ggplot2", 
+                   "did", "plm", "synthdid", "fixest", "boot", "ggthemes", type = "source"))
+
+
 library(tidyr)
 library(dplyr)
 library(tidyverse)
