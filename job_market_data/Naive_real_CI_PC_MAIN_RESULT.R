@@ -148,6 +148,9 @@ for (state_name in names(result_list)) {
   # Calculate the synthetic difference-in-differences estimate
   current_tau_hat <- synthdid_estimate(current_sDiD$Y, current_sDiD$N0, current_sDiD$T0)
   se <- sqrt(vcov(current_tau_hat, method = 'placebo'))
+  print(se)
+  
+  
   
 #  vcov.synthdid_estimate(current_tau_hat,method = 'bootstrap',replications = 500)
   
