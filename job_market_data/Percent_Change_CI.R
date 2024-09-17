@@ -47,10 +47,65 @@ real_CI <- naive_ci%>%
 #Create base dataframe that has nat_share as dependent variable.
 Filter_frac <-real_CI %>%
   select(State_Acronym,year,year_effective,State_Name,real_ci,Post)
+filt_Corp <-Filter_frac
+
+#Think about Illinois
+
+result_list <- list()  # List to store all dataframes
+
+# Make a copy of the original dataframe to work with
+original_df <- filt_Corp
+
+# Set treatment_state to Illinois
+treatment_state_name <- "Illinois"
+
+# Counter for tracking treatment year filtering
+year_counter <- 1  # Initialize year increment
+
+# Continue until we break manually or conditions are met
+while (TRUE) {
+  
+  # Reset the dataframe to the original each time
+  df <- original_df
+  
+  # Arrange by year_effective and select Illinois as the treatment state
+  treatment_state <- df %>% filter(State_Name == treatment_state_name)
+  
+  # Get the treatment year for Illinois
+  treatment_year <- treatment_state$year_effective[1]
+  
+  # Filter the dataframe to exclude rows based on treatment year and year_counter
+  # Filter out rows with year <= treatment_year + year_counter
+  df_filtered <- df %>%
+    filter(year <= treatment_year + year_counter)
+  
+  # Filter out any states that get treated within year_counter years of treatment
+  df_filtered <- df_filtered %>%
+    filter(is.na(year_effective) | (!(year_effective > treatment_year & year_effective <= treatment_year + year_counter)))
+  
+  # Filter out Ohio after treatment_year >= 2012, as per your requirement
+  df_filtered <- df_filtered %>%
+    filter(!(treatment_year >= 2012 & State_Name == "Ohio"))
+  
+  # Create a unique name for each dataframe for Illinois with the year increment
+  treatment_state_name_iteration <- paste0(treatment_state_name, "_", year_counter)
+  
+  # Store the dataframe for this iteration of Illinois in the result_list
+  assign(treatment_state_name_iteration, df_filtered)
+  result_list[[treatment_state_name_iteration]] <- df_filtered
+  
+  # Check if the treatment year has reached or exceeded 2022 and break
+  if (treatment_year + year_counter >= 2022) {break}
+  
+  # Increment the year counter
+  year_counter <- year_counter + 1
+  
+  # Break the loop if the dataframe is empty
+  if (nrow(df_filtered) == 0) {break}
+}
 
 
-
-
+#Got 23 Years for Illinois
 
 
 
@@ -100,7 +155,7 @@ while (TRUE) {
   
   # Filter out rows with year <= 2 years after treatment_year
   df <- df %>%
-    filter(year <= treatment_year + 1)
+    filter(year <= treatment_year + 2)
   
   #filter out any states that get treated within 2 years of treatment
   df <- df %>%
