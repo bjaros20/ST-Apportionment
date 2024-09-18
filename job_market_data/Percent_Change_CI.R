@@ -184,10 +184,10 @@ for (df_name in names(result_list)) {
   counter <- counter + 1
 }
 
-states_to_plot <- c("Illinois", "California", "New Jersey", "New York")
+
 
 # Plot and save the sDiD estimate
-plot <- plot(current_tau_hat_Illinois_23) +
+plot <- plot(current_tau_hat_Illinois_3) +
   labs(x = "Year", y = "Share of Nationwide Corporate Income") +
   ggtitle(paste("Synthetic Difference in Difference -", df_name, "= treated")) +
   theme_fivethirtyeight() +
@@ -204,7 +204,10 @@ plot <- plot(current_tau_hat_Illinois_23) +
 print(plot)
 
 
-top.controls = synthdid_controls(current_tau_hat_Illinois_0)[1:10, , drop=FALSE]
+summary(current_tau_hat_Illinois_3)
+
+
+top.controls = synthdid_controls(current_tau_hat_Illinois_3)[1:4, , drop=FALSE]
 plot(current_tau_hat_Illinois_0, spaghetti.units=rownames(top.controls))
 
 
