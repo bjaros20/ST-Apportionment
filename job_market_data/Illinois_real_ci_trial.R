@@ -243,30 +243,29 @@ plot(current_tau_hat, spaghetti.units=rownames(top.controls)) +
 
 
 # now create the synthetic Illinois
-# Filter the values for each control state
-NH_values <- Filter_frac %>%
-  filter(State_Acronym == "NH") %>%
-  select(State_Acronym, year, real_ci_cap)
+# Filter the values for each control state for each time weight
+# Filter each state's data for specific years and select real_ci_cap for that year
+NH_values_1998 <- NH_values %>% filter(year == 1998) %>% pull(real_ci_cap)
+ID_values_1998 <- ID_values %>% filter(year == 1998) %>% pull(real_ci_cap)
+FL_values_1998 <- FL_values %>% filter(year == 1998) %>% pull(real_ci_cap)
+MA_values_1998 <- MA_values %>% filter(year == 1998) %>% pull(real_ci_cap)
+MT_values_1998 <- MT_values %>% filter(year == 1998) %>% pull(real_ci_cap)
+NM_values_1998 <- NM_values %>% filter(year == 1998) %>% pull(real_ci_cap)
 
-ID_values <- Filter_frac %>%
-  filter(State_Acronym == "ID") %>%
-  select(State_Acronym, year, real_ci_cap)
+NH_values_1990 <- NH_values %>% filter(year == 1990) %>% pull(real_ci_cap)
+ID_values_1990 <- ID_values %>% filter(year == 1990) %>% pull(real_ci_cap)
+FL_values_1990 <- FL_values %>% filter(year == 1990) %>% pull(real_ci_cap)
+MA_values_1990 <- MA_values %>% filter(year == 1990) %>% pull(real_ci_cap)
+MT_values_1990 <- MT_values %>% filter(year == 1990) %>% pull(real_ci_cap)
+NM_values_1990 <- NM_values %>% filter(year == 1990) %>% pull(real_ci_cap)
 
-FL_values <- Filter_frac %>%
-  filter(State_Acronym == "FL") %>%
-  select(State_Acronym, year, real_ci_cap)
+NH_values_1987 <- NH_values %>% filter(year == 1987) %>% pull(real_ci_cap)
+ID_values_1987 <- ID_values %>% filter(year == 1987) %>% pull(real_ci_cap)
+FL_values_1987 <- FL_values %>% filter(year == 1987) %>% pull(real_ci_cap)
+MA_values_1987 <- MA_values %>% filter(year == 1987) %>% pull(real_ci_cap)
+MT_values_1987 <- MT_values %>% filter(year == 1987) %>% pull(real_ci_cap)
+NM_values_1987 <- NM_values %>% filter(year == 1987) %>% pull(real_ci_cap)
 
-MA_values <- Filter_frac %>%
-  filter(State_Acronym == "MA") %>%
-  select(State_Acronym, year, real_ci_cap)
-
-MT_values <- Filter_frac %>%
-  filter(State_Acronym == "MT") %>%
-  select(State_Acronym, year, real_ci_cap)
-
-NM_values <- Filter_frac %>%
-  filter(State_Acronym == "NM") %>%
-  select(State_Acronym, year, real_ci_cap)
 
 # Weights from the sDiD summary output
 NH_weight <- 0.237
@@ -276,33 +275,105 @@ MA_weight <- 0.145
 MT_weight <- 0.126
 NM_weight <- 0.114
 
+# Period weights from sDiD summary
+weight_1998 <- 0.644
+weight_1990 <- 0.213
+weight_1987 <- 0.129
 
-# Compute the synthetic control for Illinois by summing the weighted real_ci_cap values from each control state
-syn_Illinois <- (NH_weight * NH_values$real_ci_cap) + 
-  (ID_weight * ID_values$real_ci_cap) + 
-  (FL_weight * FL_values$real_ci_cap) + 
-  (MA_weight * MA_values$real_ci_cap) + 
-  (MT_weight * MT_values$real_ci_cap) + 
-  (NM_weight * NM_values$real_ci_cap)
+
+# Compute the synthetic control for each period by summing the weighted real_ci_cap values from each control state
+syn_Illinois_1998 <- (NH_weight * NH_values_1998) + 
+  (ID_weight * ID_values_1998) + 
+  (FL_weight * FL_values_1998) + 
+  (MA_weight * MA_values_1998) + 
+  (MT_weight * MT_values_1998) + 
+  (NM_weight * NM_values_1998)
+
+syn_Illinois_1990 <- (NH_weight * NH_values_1990) + 
+  (ID_weight * ID_values_1990) + 
+  (FL_weight * FL_values_1990) + 
+  (MA_weight * MA_values_1990) + 
+  (MT_weight * MT_values_1990) + 
+  (NM_weight * NM_values_1990)
+
+syn_Illinois_1987 <- (NH_weight * NH_values_1987) + 
+  (ID_weight * ID_values_1987) + 
+  (FL_weight * FL_values_1987) + 
+  (MA_weight * MA_values_1987) + 
+  (MT_weight * MT_values_1987) + 
+  (NM_weight * NM_values_1987)
+
+# Combine the period weights to calculate the final synthetic Illinois
+syn_Illinois <- (weight_1998 * syn_Illinois_1998) + 
+  (weight_1990 * syn_Illinois_1990) + 
+  (weight_1987 * syn_Illinois_1987)
+
+
+
+## ATTEMPT TO INCORPORATE THE TIME AND UNIT WEIGHTS OVER TIME
+# Define the time weights
+time_weights <- c(1998 == 0.644, 1990 == 0.213, 1987 == 0.129) # Example time weights
+
+# Unit weights for the states
+unit_weights <- list(
+  NH = 0.237,
+  ID = 0.199,
+  FL = 0.149,
+  MA = 0.145,
+  MT = 0.126,
+  NM = 0.114
+)
+
+# Function to compute the synthetic Illinois for each year
+compute_syn_illinois <- function(year) {
+  syn_illinois <- (unit_weights$NH * NH_values %>% filter(year == !!year) %>% pull(real_ci_cap)) +
+    (unit_weights$ID * ID_values %>% filter(year == !!year) %>% pull(real_ci_cap)) +
+    (unit_weights$FL * FL_values %>% filter(year == !!year) %>% pull(real_ci_cap)) +
+    (unit_weights$MA * MA_values %>% filter(year == !!year) %>% pull(real_ci_cap)) +
+    (unit_weights$MT * MT_values %>% filter(year == !!year) %>% pull(real_ci_cap)) +
+    (unit_weights$NM * NM_values %>% filter(year == !!year) %>% pull(real_ci_cap))
+  
+  return(syn_illinois)
+}
+
+# Compute synthetic Illinois for each year and apply time weights
+years <- c(1998, 1990, 1987)
+syn_illinois_over_time <- sapply(years, function(year) {
+  time_weight <- time_weights[as.character(year)]
+  syn_illinois_year <- compute_syn_illinois(year)
+  return(time_weight * syn_illinois_year)
+})
+
+# Sum over all years to get the long-run synthetic Illinois
+syn_illinois_long_run <- sum(syn_illinois_over_time, na.rm = TRUE)
+
+
+
+
 
 # Add the synthetic Illinois values to the plot dataframe for Illinois
-Illinois_plot <- Filter_frac %>%
+Illinois_plot_lr <- Filter_frac %>%
   filter(State_Acronym == "IL") %>%
   select(State_Acronym, year, real_ci_cap) %>%
-  mutate(syn_Illinois = syn_Illinois)
+  mutate(syn_Illinois = syn_illinois_long_run)
 
 # View the resulting Illinois_plot dataframe
 Illinois_plot
 
 
 # Create the plot
-ggplot(Illinois_plot, aes(x = year)) +
+ggplot(Illinois_plot_lr, aes(x = year)) +
   geom_line(aes(y = real_ci_cap, color = "Actual"), size = 1.2) +
   geom_line(aes(y = syn_Illinois, color = "Synthetic"), size = 1.2) +
-  labs(title = "Actual vs. Synthetic Naive CI per Capita for Illinois",
+  labs(title = "Actual vs. Syn Naive CI per Cap- Illinois- inc. Time Weight-LR",
        x = "Year",
        y = "Real CI") +
   scale_color_manual(values = c("Actual" = "red", "Synthetic" = "blue"),
                      labels = c("Actual" = "Real IL", "Synthetic" = "Synthetic IL")) +
   guides(color = guide_legend(title = "Corporate Income Type")) +
   theme_fivethirtyeight()
+
+
+#ATTEMPT TO GET Synthetic point estimates
+# Estimate synthetic control
+
