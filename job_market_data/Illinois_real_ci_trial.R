@@ -276,6 +276,7 @@ MA_weight <- 0.145
 MT_weight <- 0.126
 NM_weight <- 0.114
 
+
 # Compute the synthetic control for Illinois by summing the weighted real_ci_cap values from each control state
 syn_Illinois <- (NH_weight * NH_values$real_ci_cap) + 
   (ID_weight * ID_values$real_ci_cap) + 
