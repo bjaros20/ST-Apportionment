@@ -377,3 +377,33 @@ ggplot(Illinois_plot_lr, aes(x = year)) +
 #ATTEMPT TO GET Synthetic point estimates
 # Estimate synthetic control
 
+estimate.sc <- sc_estimate(current_sDiD$Y, current_sDiD$N0, current_sDiD$T0)
+
+extend_synthetic_control <- function(est, periods_post_treatment) {
+  lambda <- attr(est, 'weights')$lambda  # time weights
+  T0 <- current_sDiD$T0
+  N0 <- current_sDiD$N0
+  Y <- current_sDiD$Y
+  
+  synthetic_illinois <- numeric(ncol(Y))
+  
+  
+  # Pre-treatment synthetic control
+  for (t in 1:T0) {
+    synthetic_illinois[t] <- sum(lambda * Y[1:N0, t])
+  }
+  
+  # Post-treatment synthetic control
+  for (t in (T0 + 1):(T0 + periods_post_treatment)) {
+    synthetic_illinois[t] <- sum(lambda * Y[1:N0, t])
+  }
+  
+  return(synthetic_illinois)
+}
+
+
+# Define the number of periods you want to extend post-treatment
+periods_post_treatment <- 10
+
+# Get the synthetic Illinois values
+synthetic_illinois_values <- extend_synthetic_control(estimate.sc, periods_post_treatment)
