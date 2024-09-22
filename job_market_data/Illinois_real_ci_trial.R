@@ -28,6 +28,8 @@ naive_ci<-read.csv("naive_ci.csv")
 real_CI <- naive_ci%>%
   mutate(real_ci = (naive_ci/CPI_def)*100)
 
+real_CI_cap <- real_CI %>%
+  mutate(real_ci_cap = real_ci/population)
 
 #Create base dataframe that has nat_share as dependent variable.
 Filter_frac <-real_CI %>%
@@ -201,8 +203,8 @@ control <- rbind(never_treated,not_yet_treated) %>%
   distinct(State_Name)
 
 control_noAK_HA <-rbind(never_treated,not_yet_treated)%>%
-  filter(!(State_Name == "Alaska" | State_Name == "Hawaii")) %>%
-  distinct(State_Name)
+ filter(!(State_Name == "Alaska" | State_Name == "Hawaii")) %>%
+ distinct(State_Name)
 
 
 #Create Illinois Panel from Illinois and control
@@ -210,11 +212,11 @@ Illinois <- Filter_frac %>%
   filter(State_Name == "Illinois" | State_Name %in% control$State_Name)
 
 #Create Illinois without  Alaska or Hawaii... too volatile for revenue
-Illinois_noAK_HA <- Filter_frac %>%
-  filter(State_Name == "Illinois" | State_Name %in% control_noAK_HA$State_Name)
+#Illinois_noAK_HA <- Filter_frac %>%
+#  filter(State_Name == "Illinois" | State_Name %in% control_noAK_HA$State_Name)
 
 # Filter out rows with year <= 2 years after treatment_year
-df <- Illinois_noAK_HA %>%
+df <- Illinois %>%
   filter(year <= 1999 + 2)
 
 ## sDiD estimate
@@ -227,7 +229,7 @@ current_tau_hat <- synthdid_estimate(current_sDiD$Y, current_sDiD$N0, current_sD
 summary(current_tau_hat)
 
 #Controls for spaghetti plot
-top.controls = synthdid_controls(current_tau_hat)[1:5, , drop=FALSE]
+top.controls = synthdid_controls(current_tau_hat)[1:10, , drop=FALSE]
 plot(current_tau_hat, spaghetti.units=rownames(top.controls)) +
   labs(x = "Year", y = "Real, Naive Corporate Income per Capita") +
   ggtitle(paste("Spaghetti Plot sDiD Illinois Top Controls")) +
@@ -344,22 +346,6 @@ syn_illinois_over_time <- sapply(years, function(year) {
   return(time_weight * syn_illinois_year)
 })
 
-# Sum over all years to get the long-run synthetic Illinois
-syn_illinois_long_run <- sum(syn_illinois_over_time, na.rm = TRUE)
-
-
-
-
-
-# Add the synthetic Illinois values to the plot dataframe for Illinois
-Illinois_plot_lr <- Filter_frac %>%
-  filter(State_Acronym == "IL") %>%
-  select(State_Acronym, year, real_ci_cap) %>%
-  mutate(syn_Illinois = syn_illinois_long_run)
-
-# View the resulting Illinois_plot dataframe
-Illinois_plot
-
 
 # Create the plot
 ggplot(Illinois_plot_lr, aes(x = year)) +
@@ -374,36 +360,229 @@ ggplot(Illinois_plot_lr, aes(x = year)) +
   theme_fivethirtyeight()
 
 
-#ATTEMPT TO GET Synthetic point estimates
-# Estimate synthetic control
+##CREATE SDID per Capita for Illinois with the new output, I used the controls including AK and HA
+unit_weights <- list(
+  NH = 0.078,
+  MA = 0.076,
+  WV = 0.073,
+  TN = 0.071,
+  ID = 0.070,
+  FL = 0.070,
+  KS = 0.070,
+  NM = 0.070,
+  MS = 0.070,
+  VA = 0.067,
+  MT = 0.067,
+  VT = 0.066,
+  HI = 0.065
+)
 
-estimate.sc <- sc_estimate(current_sDiD$Y, current_sDiD$N0, current_sDiD$T0)
+#Pull values for synthetic Illinois
+NH_values <- Filter_frac %>%
+  filter(State_Acronym == "NH") %>%
+  select(State_Acronym, year, real_ci_cap)
 
-extend_synthetic_control <- function(est, periods_post_treatment) {
-  lambda <- attr(est, 'weights')$lambda  # time weights
-  T0 <- current_sDiD$T0
-  N0 <- current_sDiD$N0
-  Y <- current_sDiD$Y
-  
-  synthetic_illinois <- numeric(ncol(Y))
-  
-  
-  # Pre-treatment synthetic control
-  for (t in 1:T0) {
-    synthetic_illinois[t] <- sum(lambda * Y[1:N0, t])
-  }
-  
-  # Post-treatment synthetic control
-  for (t in (T0 + 1):(T0 + periods_post_treatment)) {
-    synthetic_illinois[t] <- sum(lambda * Y[1:N0, t])
-  }
-  
-  return(synthetic_illinois)
-}
+MA_values <- Filter_frac %>%
+  filter(State_Acronym == "MA") %>%
+  select(State_Acronym, year, real_ci_cap)
+
+WV_values <- Filter_frac %>%
+  filter(State_Acronym == "WV") %>%
+  select(State_Acronym, year, real_ci_cap)
+
+TN_values <- Filter_frac %>%
+  filter(State_Acronym == "TN") %>%
+  select(State_Acronym, year, real_ci_cap)
+
+ID_values <- Filter_frac %>%
+  filter(State_Acronym == "ID") %>%
+  select(State_Acronym, year, real_ci_cap)
+
+FL_values <- Filter_frac %>%
+  filter(State_Acronym == "FL") %>%
+  select(State_Acronym, year, real_ci_cap)
+
+KS_values <- Filter_frac %>%
+  filter(State_Acronym == "KS") %>%
+  select(State_Acronym, year, real_ci_cap)
+
+NM_values <- Filter_frac %>%
+  filter(State_Acronym == "NM") %>%
+  select(State_Acronym, year, real_ci_cap)
+
+MS_values <- Filter_frac %>%
+  filter(State_Acronym == "MS") %>%
+  select(State_Acronym, year, real_ci_cap)
+
+VA_values <- Filter_frac %>%
+  filter(State_Acronym == "VA") %>%
+  select(State_Acronym, year, real_ci_cap)
+
+MT_values <- Filter_frac %>%
+  filter(State_Acronym == "MT") %>%
+  select(State_Acronym, year, real_ci_cap)
+
+VT_values <- Filter_frac %>%
+  filter(State_Acronym == "VT") %>%
+  select(State_Acronym, year, real_ci_cap)
+
+HI_values <- Filter_frac %>%
+  filter(State_Acronym == "HI") %>%
+  select(State_Acronym, year, real_ci_cap)
+
+#Now create the synthetic Illinois
+syn_Illinois <- (unit_weights$NH * NH_values$real_ci_cap) + 
+  (unit_weights$MA * MA_values$real_ci_cap) + 
+  (unit_weights$WV * WV_values$real_ci_cap) + 
+  (unit_weights$TN * TN_values$real_ci_cap) + 
+  (unit_weights$ID * ID_values$real_ci_cap) + 
+  (unit_weights$FL * FL_values$real_ci_cap) + 
+  (unit_weights$KS * KS_values$real_ci_cap) + 
+  (unit_weights$NM * NM_values$real_ci_cap) + 
+  (unit_weights$MS * MS_values$real_ci_cap) + 
+  (unit_weights$VA * VA_values$real_ci_cap) + 
+  (unit_weights$MT * MT_values$real_ci_cap) + 
+  (unit_weights$VT * VT_values$real_ci_cap) + 
+  (unit_weights$HI * HI_values$real_ci_cap)
 
 
-# Define the number of periods you want to extend post-treatment
-periods_post_treatment <- 10
+#Create df for plot
+Illinois_plot <- Filter_frac %>%
+  filter(State_Acronym == "IL") %>%
+  select(State_Acronym, year, real_ci_cap) %>%
+  mutate(syn_Illinois = syn_Illinois)
 
-# Get the synthetic Illinois values
-synthetic_illinois_values <- extend_synthetic_control(estimate.sc, periods_post_treatment)
+
+#Plot of synthetic and actual Illinois
+ggplot(Illinois_plot, aes(x = year)) +
+  geom_line(aes(y = real_ci_cap, color = "Actual"), size = 1.2) +
+  geom_line(aes(y = syn_Illinois, color = "Synthetic"), size = 1.2) +
+  labs(title = "Actual vs. Synthetic Naive CI per Capita for Illinois",
+            x = "Year",
+            y = "Real CI") +
+         scale_color_manual(values = c("Actual" = "red", "Synthetic" = "blue"),
+                            labels = c("Actual" = "Real IL", "Synthetic" = "Synthetic IL")) +
+         guides(color = guide_legend(title = "Corporate Income Type")) +
+       theme_fivethirtyeight()
+
+
+#try again, but remove Hawaii and Alaska for the control
+
+#Create not-yet treated and never treated.  Create two control groups, one with AK/HA, one without
+not_yet_treated <- Filter_frac %>%
+  group_by(State_Name)%>%
+  filter(Post == 1 & year_effective > 2021)
+
+never_treated <- Filter_frac %>%
+  group_by(State_Name)%>%
+  filter(Post == 0 & year_effective >2021 | is.na( year_effective)) %>%
+  filter(!(State_Acronym == "OH"))
+
+control <- rbind(never_treated,not_yet_treated) %>%
+  distinct(State_Name)
+
+control_noAK_HA <-rbind(never_treated,not_yet_treated)%>%
+filter(!(State_Name == "Alaska" | State_Name == "Hawaii")) %>%
+ distinct(State_Name)
+
+
+
+#Create Illinois Panel from Illinois and control
+Illinois <- Filter_frac %>%
+  filter(State_Name == "Illinois" | State_Name %in% control$State_Name)
+
+#Create Illinois without  Alaska or Hawaii... too volatile for revenue
+Illinois_noAK_HA <- Filter_frac %>%
+  filter(State_Name == "Illinois" | State_Name %in% control_noAK_HA$State_Name)
+
+# Filter out rows with year <= 2 years after treatment_year
+df <- Illinois_noAK_HA %>%
+  filter(year <= 1999 + 2)
+
+## sDiD estimate
+# Create the panel matrices for sDiD using synthdid
+current_sDiD <- panel.matrices(df, unit = "State_Acronym", time = "year", outcome = "real_ci_cap", treatment = "Post")
+
+# Calculate the synthetic difference-in-differences estimate
+current_tau_hat <- synthdid_estimate(current_sDiD$Y, current_sDiD$N0, current_sDiD$T0)
+
+summary(current_tau_hat)
+
+#Controls for spaghetti plot
+top.controls = synthdid_controls(current_tau_hat)[1:6, , drop=FALSE]
+plot(current_tau_hat, spaghetti.units=rownames(top.controls)) +
+  labs(x = "Year", y = "Real, Naive Corporate Income per Capita") +
+  ggtitle(paste("Spaghetti Plot sDiD Illinois Top Controls")) +
+  theme_fivethirtyeight() +
+  theme(
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.line = element_line(linewidth = 0.5, colour = "black")
+  )
+
+
+#Creat plot for No AK or Hawaii list
+# Weights from the sDiD summary output
+NH_weight <- 0.237
+ID_weight <- 0.199
+FL_weight <- 0.149
+MA_weight <- 0.145
+MT_weight <- 0.126
+NM_weight <- 0.114
+
+#create synthetic Illinois
+syn_Illinois_noAH <- (NH_weight * NH_values$real_ci_cap) + 
+  (ID_weight * ID_values$real_ci_cap) + 
+  (FL_weight * FL_values$real_ci_cap) + 
+  (MA_weight * MA_values$real_ci_cap) + 
+  (MT_weight * MT_values$real_ci_cap) + 
+  (NM_weight * NM_values$real_ci_cap)
+
+
+#Plot No AK or HA control
+Illinois_noAH_plot <- Filter_frac %>%
+  filter(State_Acronym == "IL") %>%
+  select(State_Acronym, year, real_ci_cap) %>%
+  mutate(syn_Illinois = syn_Illinois_noAH)
+
+
+#Plot of synthetic and actual Illinois
+ggplot(Illinois_plot, aes(x = year)) +
+  geom_line(aes(y = real_ci_cap, color = "Actual"), size = 1.2) +
+  geom_line(aes(y = syn_Illinois_noAH, color = "Synthetic"), size = 1.2) +
+  labs(title = "Actual vs. Synthetic Naive CI per Capita for Illinois- No AK or HA",
+       x = "Year",
+       y = "Real CI") +
+  scale_color_manual(values = c("Actual" = "red", "Synthetic" = "blue"),
+                     labels = c("Actual" = "Real IL", "Synthetic" = "Synthetic IL")) +
+  guides(color = guide_legend(title = "Corporate Income Type")) +
+  theme_fivethirtyeight()
+
+
+#Now create a shift up
+ill_diff <- Illinois_plot %>%
+  filter(year == 1999) %>%
+  summarize(shift = real_ci_cap - syn_Illinois)%>%
+  mutate(syn_plus_shift = shift + syn_Illinois)
+
+
+Illinois_shift <- Illinois_plot %>%
+  mutate(syn_plus_shift = ill_diff$shift + syn_Illinois)
+
+#Plot with shift
+ggplot(Illinois_shift, aes(x = year)) +
+  geom_line(aes(y = real_ci_cap, color = "Actual"), size = 1.2) +
+  geom_line(aes(y = syn_plus_shift, color = "Synthetic Shift"), size = 1.2) +
+  labs(title = "Actual vs. Synthetic Naive CI per Capita for Illinois- Shift",
+       x = "Year",
+       y = "Real CI") +
+  scale_color_manual(values = c("Actual" = "red", "Synthetic" = "blue"),
+                     labels = c("Actual" = "Real IL", "Synthetic" = "Synthetic IL")) +
+  guides(color = guide_legend(title = "Corporate Income Type")) +
+  theme_fivethirtyeight()
+
+
+
