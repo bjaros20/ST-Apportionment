@@ -596,8 +596,33 @@ base76 <- Illinois_plot %>%
 #plot with base trend
 ggplot(base76, aes(x = year)) +
   geom_line(aes(y = real_ci_cap_relative, color = "Actual"), size = 1.2) +
-  geom_line(aes(y = syn_Illinois_relative, color = "Synthetic Shift"), size = 1.2) +
+  geom_line(aes(y = syn_Illinois_relative, color = "Synthetic"), size = 1.2) +
   labs(title = "Actual vs. Synthetic Naive CI per Capita for Illinois- Base Year 1976",
+       x = "Year",
+       y = "Real CI per Capita") +
+  scale_color_manual(values = c("Actual" = "red", "Synthetic" = "blue"),
+                     labels = c("Actual" = "Real IL", "Synthetic" = "Synthetic IL")) +
+  guides(color = guide_legend(title = "Corporate Income Type")) +
+  theme_fivethirtyeight()
+
+
+#Going to create an overlaid, normalized plot
+
+
+#Now create a shift up
+ill_norm_shift <- base76 %>%
+  filter(year == 1999) %>%
+  summarize(shift = real_ci_cap_relative - syn_Illinois_relative)
+
+
+Illinois_shift <- base76 %>%
+  mutate(syn_plus_shift = ill_norm_shift$shift + syn_Illinois_relative)
+
+#Plot with shift and normalization to 1976
+ggplot(Illinois_shift, aes(x = year)) +
+  geom_line(aes(y = real_ci_cap_relative, color = "Actual"), size = 1.2) +
+  geom_line(aes(y = syn_plus_shift, color = "Synthetic"), size = 1.2) +
+  labs(title = "Actual vs. Synthetic Naive CI/Capita for Illinois- Shift/Base 76",
        x = "Year",
        y = "Real CI") +
   scale_color_manual(values = c("Actual" = "red", "Synthetic" = "blue"),
@@ -606,63 +631,38 @@ ggplot(base76, aes(x = year)) +
   theme_fivethirtyeight()
 
 
-#Attempt 1976 as the base year for percentage change.
-#this attempt might work for percentage change because trying to create synthetic
-#version of the trend, not the point estimate.
-#Create base dataframe that has nat_share as dependent variable.
-Filter_frac <-real_CI_cap %>%
-  select(State_Acronym,year,year_effective,State_Name,real_ci_cap,Post)
+#Want to save dataframe with normalized data to 1976
+write.csv(base76,"normalized_syn_illinois.csv", row.names = FALSE)
 
-not_yet_treated <- Filter_frac %>%
-  group_by(State_Name)%>%
-  filter(Post == 1 & year_effective > 2021)
-
-never_treated <- Filter_frac %>%
-  group_by(State_Name)%>%
-  filter(Post == 0 & year_effective >2021 | is.na( year_effective)) %>%
-  filter(!(State_Acronym == "OH"))
-
-control <- rbind(never_treated,not_yet_treated) %>%
-  distinct(State_Name)
-
-control_noAK_HA <-rbind(never_treated,not_yet_treated)%>%
-  filter(!(State_Name == "Alaska" | State_Name == "Hawaii")) %>%
-  distinct(State_Name)
-
-
-#Create Illinois Panel from Illinois and control
+#Run sDiD with full length of treatment and control
+#Use the Illinois df
+#remove 2022 so it is just Illinois
 Illinois <- Filter_frac %>%
-  filter(State_Name == "Illinois" | State_Name %in% control$State_Name)
+  filter(State_Name == "Illinois" | State_Name %in% never_treated$State_Name)
 
+df <- Illinois %>%
+  filter(year < 2022)
 
-
-
-
-#try synthetic DiD again, with the mirrored changes, see if the weights change 
-base_year76 <- Illinois %>%
-  group_by(State_Acronym) %>%
-  mutate(
-    real_ci_cap_relative = (real_ci_cap / real_ci_cap[year == 1976]) * 100
-  ) %>%
-  ungroup()
-
-# Filter out rows with year <= 2 years after treatment_year
-base_df <- base_year76 %>%
-  filter(year <= 1999 + 2 & year> 1976)
-
-## sDiD estimate
 # Create the panel matrices for sDiD using synthdid
-current_sDiD <- panel.matrices(base_df, unit = "State_Acronym", time = "year", outcome = "real_ci_cap_relative", treatment = "Post")
+current_sDiD <- panel.matrices(df, unit = "State_Acronym", time = "year", outcome = "real_ci_cap", treatment = "Post")
 
 # Calculate the synthetic difference-in-differences estimate
 current_tau_hat <- synthdid_estimate(current_sDiD$Y, current_sDiD$N0, current_sDiD$T0)
-summary(current_tau_hat)
+se <- sqrt(vcov(current_tau_hat, method = 'placebo'))
 
-#Controls for spaghetti plot
-top.controls = synthdid_controls(current_tau_hat)[1:6, , drop=FALSE]
-plot(current_tau_hat, spaghetti.units=rownames(top.controls)) +
-  labs(x = "Year", y = "Real, Naive Corporate Income per Capita") +
-  ggtitle(paste("Spaghetti Plot sDiD Illinois Top Controls")) +
+# Calculate the t-statistic
+t_statistic <- (as.numeric(current_tau_hat)-0) / se
+
+# Calculate the p-value
+p_value_two_tail <- 2 * pt(-abs(t_statistic), df = nrow(df) - 1)
+
+
+# Plots for Illinois against Never and Not yet Treated
+
+# Plot sDiD estimate
+plot <- plot(current_tau_hat) +
+  labs(x = "Year", y = "Real, Naive Corporate Income") +
+  ggtitle(paste("sDiD Illinois and Never Treated Control- Long Run")) +
   theme_fivethirtyeight() +
   theme(
     axis.title.x = element_text(size = 12),
@@ -673,6 +673,6 @@ plot(current_tau_hat, spaghetti.units=rownames(top.controls)) +
     axis.line = element_line(linewidth = 0.5, colour = "black")
   )
 
-
-
-
+summary(current_tau_hat)
+# Print the plot
+print(plot)
