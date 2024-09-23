@@ -446,7 +446,7 @@ syn_Illinois <- (unit_weights$NH * NH_values$real_ci_cap) +
   (unit_weights$HI * HI_values$real_ci_cap)
 
 
-#Create df for plot
+#Create df for plot, for synthetic Illinois with AK or HA
 Illinois_plot <- Filter_frac %>%
   filter(State_Acronym == "IL") %>%
   select(State_Acronym, year, real_ci_cap) %>%
@@ -524,7 +524,7 @@ plot(current_tau_hat, spaghetti.units=rownames(top.controls)) +
   )
 
 
-#Creat plot for No AK or Hawaii list
+#Create plot for No AK or Hawaii list
 # Weights from the sDiD summary output
 NH_weight <- 0.237
 ID_weight <- 0.199
@@ -550,7 +550,7 @@ Illinois_noAH_plot <- Filter_frac %>%
 
 
 #Plot of synthetic and actual Illinois
-ggplot(Illinois_plot, aes(x = year)) +
+ggplot(Illinois_noAH_plot, aes(x = year)) +
   geom_line(aes(y = real_ci_cap, color = "Actual"), size = 1.2) +
   geom_line(aes(y = syn_Illinois_noAH, color = "Synthetic"), size = 1.2) +
   labs(title = "Actual vs. Synthetic Naive CI per Capita for Illinois- No AK or HA",
@@ -584,10 +584,7 @@ ggplot(Illinois_shift, aes(x = year)) +
   guides(color = guide_legend(title = "Corporate Income Type")) +
   theme_fivethirtyeight()
 
-#Attempt 1976 as the base year for percentage change.
-#this attempt might work for percentage change because trying to create synthetic
-#version of the trend, not the point estimate.
-
+#Plot with controls from synthetic DiD point estimate
 base76 <- Illinois_plot %>%
   group_by(State_Acronym) %>%
   mutate(
@@ -595,6 +592,50 @@ base76 <- Illinois_plot %>%
     syn_Illinois_relative = (syn_Illinois / syn_Illinois[year == 1976]) * 100
   ) %>%
   ungroup()
+
+#plot with base trend
+ggplot(base76, aes(x = year)) +
+  geom_line(aes(y = real_ci_cap_relative, color = "Actual"), size = 1.2) +
+  geom_line(aes(y = syn_Illinois_relative, color = "Synthetic Shift"), size = 1.2) +
+  labs(title = "Actual vs. Synthetic Naive CI per Capita for Illinois- Base Year 1976",
+       x = "Year",
+       y = "Real CI") +
+  scale_color_manual(values = c("Actual" = "red", "Synthetic" = "blue"),
+                     labels = c("Actual" = "Real IL", "Synthetic" = "Synthetic IL")) +
+  guides(color = guide_legend(title = "Corporate Income Type")) +
+  theme_fivethirtyeight()
+
+
+#Attempt 1976 as the base year for percentage change.
+#this attempt might work for percentage change because trying to create synthetic
+#version of the trend, not the point estimate.
+#Create base dataframe that has nat_share as dependent variable.
+Filter_frac <-real_CI_cap %>%
+  select(State_Acronym,year,year_effective,State_Name,real_ci_cap,Post)
+
+not_yet_treated <- Filter_frac %>%
+  group_by(State_Name)%>%
+  filter(Post == 1 & year_effective > 2021)
+
+never_treated <- Filter_frac %>%
+  group_by(State_Name)%>%
+  filter(Post == 0 & year_effective >2021 | is.na( year_effective)) %>%
+  filter(!(State_Acronym == "OH"))
+
+control <- rbind(never_treated,not_yet_treated) %>%
+  distinct(State_Name)
+
+control_noAK_HA <-rbind(never_treated,not_yet_treated)%>%
+  filter(!(State_Name == "Alaska" | State_Name == "Hawaii")) %>%
+  distinct(State_Name)
+
+
+#Create Illinois Panel from Illinois and control
+Illinois <- Filter_frac %>%
+  filter(State_Name == "Illinois" | State_Name %in% control$State_Name)
+
+
+
 
 
 #try synthetic DiD again, with the mirrored changes, see if the weights change 
@@ -607,15 +648,7 @@ base_year76 <- Illinois %>%
 
 # Filter out rows with year <= 2 years after treatment_year
 base_df <- base_year76 %>%
-  filter(year <= 1999 + 2 & year >1976)
-
-#df is larger than previous df, therefore, need to filter out via anti_join
-# Perform anti_join to find rows in base_df that are not in df
-differences <- anti_join(base_df, df, by = c("State_Acronym", "year", "Post"))
-
-# View the result
-print(differences)
-
+  filter(year <= 1999 + 2 & year> 1976)
 
 ## sDiD estimate
 # Create the panel matrices for sDiD using synthdid
@@ -642,14 +675,4 @@ plot(current_tau_hat, spaghetti.units=rownames(top.controls)) +
 
 
 
-#plot with base trend
-ggplot(base76, aes(x = year)) +
-  geom_line(aes(y = real_ci_cap_relative, color = "Actual"), size = 1.2) +
-  geom_line(aes(y = syn_Illinois_relative, color = "Synthetic Shift"), size = 1.2) +
-  labs(title = "Actual vs. Synthetic Naive CI per Capita for Illinois- Shift",
-       x = "Year",
-       y = "Real CI") +
-  scale_color_manual(values = c("Actual" = "red", "Synthetic" = "blue"),
-                     labels = c("Actual" = "Real IL", "Synthetic" = "Synthetic IL")) +
-  guides(color = guide_legend(title = "Corporate Income Type")) +
-  theme_fivethirtyeight()
+
