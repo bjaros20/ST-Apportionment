@@ -584,5 +584,72 @@ ggplot(Illinois_shift, aes(x = year)) +
   guides(color = guide_legend(title = "Corporate Income Type")) +
   theme_fivethirtyeight()
 
+#Attempt 1976 as the base year for percentage change.
+#this attempt might work for percentage change because trying to create synthetic
+#version of the trend, not the point estimate.
+
+base76 <- Illinois_plot %>%
+  group_by(State_Acronym) %>%
+  mutate(
+    real_ci_cap_relative = (real_ci_cap / real_ci_cap[year == 1976]) * 100,
+    syn_Illinois_relative = (syn_Illinois / syn_Illinois[year == 1976]) * 100
+  ) %>%
+  ungroup()
 
 
+#try synthetic DiD again, with the mirrored changes, see if the weights change 
+base_year76 <- Illinois %>%
+  group_by(State_Acronym) %>%
+  mutate(
+    real_ci_cap_relative = (real_ci_cap / real_ci_cap[year == 1976]) * 100
+  ) %>%
+  ungroup()
+
+# Filter out rows with year <= 2 years after treatment_year
+base_df <- base_year76 %>%
+  filter(year <= 1999 + 2 & year >1976)
+
+#df is larger than previous df, therefore, need to filter out via anti_join
+# Perform anti_join to find rows in base_df that are not in df
+differences <- anti_join(base_df, df, by = c("State_Acronym", "year", "Post"))
+
+# View the result
+print(differences)
+
+
+## sDiD estimate
+# Create the panel matrices for sDiD using synthdid
+current_sDiD <- panel.matrices(base_df, unit = "State_Acronym", time = "year", outcome = "real_ci_cap_relative", treatment = "Post")
+
+# Calculate the synthetic difference-in-differences estimate
+current_tau_hat <- synthdid_estimate(current_sDiD$Y, current_sDiD$N0, current_sDiD$T0)
+summary(current_tau_hat)
+
+#Controls for spaghetti plot
+top.controls = synthdid_controls(current_tau_hat)[1:6, , drop=FALSE]
+plot(current_tau_hat, spaghetti.units=rownames(top.controls)) +
+  labs(x = "Year", y = "Real, Naive Corporate Income per Capita") +
+  ggtitle(paste("Spaghetti Plot sDiD Illinois Top Controls")) +
+  theme_fivethirtyeight() +
+  theme(
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.line = element_line(linewidth = 0.5, colour = "black")
+  )
+
+
+
+#plot with base trend
+ggplot(base76, aes(x = year)) +
+  geom_line(aes(y = real_ci_cap_relative, color = "Actual"), size = 1.2) +
+  geom_line(aes(y = syn_Illinois_relative, color = "Synthetic Shift"), size = 1.2) +
+  labs(title = "Actual vs. Synthetic Naive CI per Capita for Illinois- Shift",
+       x = "Year",
+       y = "Real CI") +
+  scale_color_manual(values = c("Actual" = "red", "Synthetic" = "blue"),
+                     labels = c("Actual" = "Real IL", "Synthetic" = "Synthetic IL")) +
+  guides(color = guide_legend(title = "Corporate Income Type")) +
+  theme_fivethirtyeight()
