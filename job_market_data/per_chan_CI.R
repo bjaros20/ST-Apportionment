@@ -104,16 +104,22 @@ for (state_name in names(result_list)) {
   weights_df <- data.frame(State = character(), Weight = numeric(), stringsAsFactors = FALSE)
   # Loop through each state-weight pair and extract the state and weight
   for (weight_pair in weights_list) {
-    # Split each pair into state acronym (first two characters) and the weight (numeric)
-    state_acronym <- substr(weight_pair, 1, 2)  # First two characters are the state acronym
-    weight_value <- as.numeric(trimws(substring(weight_pair, 4)))  # Numeric value starting after the space
+    # Trim any leading/trailing spaces before extracting the state acronym
+    cleaned_pair <- trimws(weight_pair)
+    
+    # Now split each pair into the state acronym (first two characters) and the weight (numeric)
+    state_acronym <- substr(cleaned_pair, 1, 2)  # First two characters after trimming
+    weight_value <- as.numeric(trimws(substring(cleaned_pair, 4)))  # Numeric value starting after the space
+    
     # Append the state and weight to the weights_df dataframe
     weights_df <- rbind(weights_df, data.frame(State = state_acronym, Weight = weight_value, stringsAsFactors = FALSE))
   }
   
-  
   #filter original df
   filtered_df <- current_df[current_df$State_Acronym %in% weights_df$State, ]
+  
+  # left join to get unit weights
+  filtered_df <- left_join(filtered_df, weights_df, by = c("State_Acronym" = "State"))
   
   # Save the filtered dataframe as "state_name_control" and add it to the result_list_controls
   control_name <- paste0(state_name, "_control")
@@ -121,5 +127,7 @@ for (state_name in names(result_list)) {
   control_name <- paste0(state_name, "_control")
   result_list_controls[[control_name]] <- filtered_df # Store it in the list
 }
+
+
 
 
