@@ -33,7 +33,7 @@ filt_Corp <-naive_ci %>%
   select(State_Acronym,year,year_effective,State_Name,real_ci_cap,Post)
  
 
-#step 1, create the Dataframes that just consist of the treated states, never and not yet treated states.
+#PART 1, create the Dataframes that just consist of the treated states, never and not yet treated states.
 #create result list to store dataframe
 result_list <- list()
 # Make a copy of the original dataframe to work with
@@ -47,7 +47,7 @@ while (TRUE) {
   # Arrange by year_effective and select the first state for treatment
   df <- df %>% arrange(year_effective)
   #counter variable for running the loop
-  if(df$year_effective[counter] >= 2022) {break}
+  if(df$year_effective[counter] >= 2021) {break}
   treatment_state <- df %>% slice(counter) 
   treatment_year <- treatment_state$year_effective
   treatment_state_name <- treatment_state$State_Name
@@ -76,13 +76,14 @@ while (TRUE) {
   assign(treatment_state_name, df)
   result_list[[treatment_state_name]] <- df
   # Check if the treatment year is 2022 or greater, break
-  if (treatment_year >= 2022) {break}
+  if (treatment_year >= 2021) {break}
   #increment counter
   counter <-counter + 1
   #empty dataframe break
   if (nrow(df) == 0) {break}
 }
 
+#PART 2 Extract CONTROLS DFs
 
 result_list_controls <- list()
 # Loop over each dataframe in result_list_long_run
@@ -115,11 +116,19 @@ for (state_name in names(result_list)) {
     weights_df <- rbind(weights_df, data.frame(State = state_acronym, Weight = weight_value, stringsAsFactors = FALSE))
   }
   
+  #lost treatment state... need to modify this step
   #filter original df
   filtered_df <- current_df[current_df$State_Acronym %in% weights_df$State, ]
+  #filter for treatment state separately
+  treatment_df <- current_df[current_df$State_Name == current_state, ]
+  #combine
+  filtered_df <- rbind(filtered_df, treatment_df)
   
   # left join to get unit weights
   filtered_df <- left_join(filtered_df, weights_df, by = c("State_Acronym" = "State"))
+  
+  # If the treatment state is included, set its weight to 1 (or any other appropriate value)
+  filtered_df$Weight[filtered_df$State_Acronym == current_state] <- 1
   
   # Save the filtered dataframe as "state_name_control" and add it to the result_list_controls
   control_name <- paste0(state_name, "_control")
@@ -129,5 +138,80 @@ for (state_name in names(result_list)) {
 }
 
 
+# PART 3 LOOP JUST CREATES THE SYNTHETIC STATE DF AND SAVES IT.
+#pull treated df
+Iowa_syn <- result_list_controls[["Iowa_control"]]
+
+#Create synthetic values for the treated df
+Iowa_res <- Iowa_syn %>%
+  mutate(weighted_ci = real_ci_cap * Weight)
+
+just_Iowa <- Iowa_res %>%
+  filter(State_Name == "Iowa")
+
+#create the synthetic Iowa
+Iowa_sum <- Iowa_res %>%
+  filter(State_Acronym != "Iowa") %>%
+  group_by(year)%>%
+  summarize(sum_weight = sum(Weight, na.rm = TRUE),
+            syn_Iowa = sum(weighted_ci, na.rm = TRUE))
 
 
+#Sum weights, note the synthetic control weights do not sum to 1.  NOTE IN DATA OR EMP APPROACH SECTION
+sum_weight <- weights_df %>%
+  summarize(Total = sum(Weight, na.rm = TRUE))
+
+syn_Iowa <- Iowa_sum %>%
+  left_join(just_Iowa, by = c("year"))%>%
+  select(-Weight, -weighted_ci)
+
+
+#PART 4- create the base year 1976 column, estimate the shift, and create the values
+#filter to minimize what's in df ? , could do it.
+
+#Create base year 1976 plot
+Iowa_base76 <- syn_Iowa %>%
+  group_by(State_Acronym) %>%
+  mutate(
+    real_ci_cap_76 = (real_ci_cap / real_ci_cap[year == 1976]) * 100,
+    syn_Iowa_76 = (syn_Iowa / syn_Iowa[year == 1976]) * 100
+  ) %>%
+  ungroup()
+
+
+#Create the shift
+
+
+
+#PART 5- PLOTS- 3 types, i. Raw Synthetic v Actual, ii. Base year 1976 v Actual, 
+#iii. base year 1976, residual minimization v actual
+
+year_effective_first <- syn_Iowa$year_effective[1]
+
+#i Raw synthetic v Actual
+ggplot(syn_Iowa, aes(x = year)) +
+  geom_vline(xintercept = year_effective_first, color = "black", linewidth = .75) +
+  geom_line(aes(y = real_ci_cap, color = "Actual"), size = 1.2) +
+  geom_line(aes(y = syn_Iowa, color = "Synthetic"), linetype = "dotdash", size = 1.2) +
+  labs(title = "Actual vs. Synthetic Naive CI per Capita- Iowa",
+       x = "Year",
+       y = "Real CI per Capita ($)") +
+  scale_color_manual(values = c("Actual" = "red", "Synthetic" = "blue"),
+                     labels = c("Actual" = "Real Iowa", "Synthetic" = "Synthetic Iowa")) +
+  guides(color = guide_legend(title = "Corporate Income Type")) +
+  theme_stata()
+
+# ii Base Year 1976 synthetic v actual
+ggplot(Iowa_base76, aes(x = year)) +
+  geom_vline(xintercept = year_effective_first, color = "black", linewidth = .75) +
+  geom_line(aes(y = real_ci_cap_76, color = "Actual"), size = 1.2) +
+  geom_line(aes(y = syn_Iowa_76, color = "Synthetic"), linetype = "dotdash", size = 1.2) +
+  labs(title = "Actual vs. Synthetic Naive CI per Capita Iowa- Base Year 1976",
+       x = "Year",
+       y = "Real CI per Capita Normalized to 1976") +
+  scale_color_manual(values = c("Actual" = "red", "Synthetic" = "blue"),
+                     labels = c("Actual" = "Real Iowa", "Synthetic" = "Synthetic Iowa")) +
+  guides(color = guide_legend(title = "Corporate Income Type")) +
+  theme_stata()
+
+#iii) Shift
