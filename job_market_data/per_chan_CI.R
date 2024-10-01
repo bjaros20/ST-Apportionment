@@ -138,78 +138,118 @@ for (state_name in names(result_list)) {
 }
 
 
+
 # PART 3 LOOP JUST CREATES THE SYNTHETIC STATE DF AND SAVES IT.
+result_list_syn_state <- list()
+
+# Create an empty dataframe to store the state names and first sum_weight values
+sum_weight_df <- data.frame(State_Name = character(), First_Sum_Weight = numeric(), stringsAsFactors = FALSE)
+
+
+# Loop over each dataframe in result_list_long_run
+for (state_name in names(result_list_controls)) {
+  # Remove "_control" to get the actual state name
+  treatment_state_name <- sub("_control", "", state_name)
 #pull treated df
-Iowa_syn <- result_list_controls[["Iowa_control"]]
-
+  treated_df <- result_list_controls[[state_name]]
 #Create synthetic values for the treated df
-Iowa_res <- Iowa_syn %>%
-  mutate(weighted_ci = real_ci_cap * Weight)
+  synthetic_df <- treated_df %>%
+    mutate(weighted_ci = real_ci_cap * Weight)
+  #get just treatment state
+  actual_state_data <- synthetic_df %>%
+    filter(State_Name == treatment_state_name)
+#create the synthetic treated state
+  synthetic_sum <- synthetic_df %>%
+    filter(State_Acronym != state_name) %>%
+    group_by(year) %>%
+    summarize(sum_weight = sum(Weight, na.rm = TRUE),
+              syn_state = sum(weighted_ci, na.rm = TRUE))
+  #save sum weight
+  first_sum_weight <- synthetic_sum$sum_weight[1]
+  # Append the state name and the first sum_weight value to sum_weight_df
+  sum_weight_df <- rbind(sum_weight_df, data.frame(State_Name = state_name, First_Sum_Weight = first_sum_weight))
+  # Combine the synthetic state and actual state data
+  synthetic_combined <- synthetic_sum %>%
+    left_join(actual_state_data, by = c("year")) %>%
+    select(-Weight, -weighted_ci)
+  # Save the result for the current state in the result list
+  result_list_syn_state[[paste0(treatment_state_name, "_synthetic")]] <- synthetic_combined
+  
+  # Save each dataframe as a CSV file with the desired name format
+  csv_filename <- paste0("synthetic_", treatment_state_name, ".csv")
+  write.csv(synthetic_combined, csv_filename, row.names = FALSE)
+}
 
-just_Iowa <- Iowa_res %>%
-  filter(State_Name == "Iowa")
-
-#create the synthetic Iowa
-Iowa_sum <- Iowa_res %>%
-  filter(State_Acronym != "Iowa") %>%
-  group_by(year)%>%
-  summarize(sum_weight = sum(Weight, na.rm = TRUE),
-            syn_Iowa = sum(weighted_ci, na.rm = TRUE))
+#save the sum_weight_df
+write.csv(sum_weight_df,"sDiD_weights_SUMMED_by_state.csv", row.names = FALSE)
 
 
+#notes from the Iowa run
 #Sum weights, note the synthetic control weights do not sum to 1.  NOTE IN DATA OR EMP APPROACH SECTION
-sum_weight <- weights_df %>%
-  summarize(Total = sum(Weight, na.rm = TRUE))
-
-syn_Iowa <- Iowa_sum %>%
-  left_join(just_Iowa, by = c("year"))%>%
-  select(-Weight, -weighted_ci)
+#sum_weight <- weights_df %>%
+# summarize(Total = sum(Weight, na.rm = TRUE))
 
 
 #PART 4- create the base year 1976 column, estimate the shift, and create the values
 #filter to minimize what's in df ? , could do it.
+# Initialize an empty list to store the results
+results_percentage <- list()
+# Initialize a dataframe to store the optimal shift values for each treatment state
+optimal_shifts_df <- data.frame(State_Name = character(), Optimal_Shift = numeric(), stringsAsFactors = FALSE)
 
-#Create base year 1976 plot
-Iowa_base76 <- syn_Iowa %>%
-  group_by(State_Acronym) %>%
-  mutate(
-    real_ci_cap_76 = (real_ci_cap / real_ci_cap[year == 1976]) * 100,
-    syn_Iowa_76 = (syn_Iowa / syn_Iowa[year == 1976]) * 100
-  ) %>%
-  ungroup()
-
-
-#Create the shift
-diff_base76 <- Iowa_base76 %>%
-  group_by(State_Acronym)%>%
-  mutate(diff = abs(real_ci_cap_76 - syn_Iowa_76)) %>%
-  ungroup()
-
-# use optimize
-objective_function <- function(shift) {
-  # Filter the data where Post == 0
-  filtered_data <- Iowa_base76[Iowa_base76$Post == 0, ]
-  # Calculate the absolute difference with the shift applied
-  difference <- abs(filtered_data$real_ci_cap_76 - (filtered_data$syn_Iowa_76 + shift))
-  # Calculate the average difference
-  average_difference <- mean(difference)
-  return(average_difference)
+# Loop through each synthetic state in result_list_syn_state
+for (state_name in names(result_list_syn_state)) {
+  # Pull the treated dataframe for the current state
+  syn_state <- result_list_syn_state[[state_name]]
+  # Create base year 1976 plot
+  base76_state <- syn_state %>%
+    group_by(State_Acronym) %>%
+    mutate(
+      real_ci_cap_76 = (real_ci_cap / real_ci_cap[year == 1976]) * 100,
+      syn_state_76 = (syn_state / syn_state[year == 1976]) * 100  # Using syn_state now
+    ) %>%
+    ungroup()
+  # Create the shift
+  diff_base76 <- base76_state %>%
+    group_by(State_Acronym) %>%
+    mutate(diff = abs(real_ci_cap_76 - syn_state_76)) %>%
+    ungroup()
+  # Objective function for optimization
+  objective_function <- function(shift) {
+    # Filter the data where Post == 0
+    filtered_data <- base76_state[base76_state$Post == 0, ]
+    # Calculate the absolute difference with the shift applied
+    difference <- abs(filtered_data$real_ci_cap_76 - (filtered_data$syn_state_76 + shift))
+    # Calculate the average difference
+    average_difference <- mean(difference)
+    return(average_difference)
+  }
+  # Use optim to find the shift that minimizes the average absolute difference
+  initial_guess <- 0  # Start with an initial guess for shift
+  result <- optim(par = initial_guess, fn = objective_function, method = "Brent", lower = -100, upper = 100)
+  # Get the optimal shift value
+  optimal_shift <- result$par
+  # Save the optimal shift in the dataframe
+  optimal_shifts_df <- rbind(optimal_shifts_df, data.frame(State_Name = gsub("_synthetic", "", state_name), Optimal_Shift = optimal_shift))
+  # Mutate the dataframe to apply the shift
+  shift_base_76 <- base76_state %>%
+    mutate(syn_state_76_shift = syn_state_76 + optimal_shift)
+  # Save the dataframe as CSV with the appropriate name
+  csv_filename <- paste0(gsub("_synthetic", "", state_name), "_base76_shift.csv")
+  write.csv(shift_base_76, csv_filename, row.names = FALSE)
+  
+  # Save the shifted dataframe in the results list for further use
+  results_percentage[[paste0(state_name, "_shift")]] <- shift_base_76
 }
 
-# Use optim to find the shift that minimizes the average absolute difference
-initial_guess <- 0  # Start with an initial guess for shift
-# Optimizing the shift using optim
-result <- optim(par = initial_guess, fn = objective_function, method = "Brent", lower = -100, upper = 100)
+write.csv(optimal_shifts_df,"optimal_shift_by_state.csv", row.names = FALSE)
 
 
-# Print the optimal shift value
-optimal_shift <- result$par
-optimal_shift
+# After the loop, optimal_shifts_df will contain the optimal shift values for each state
 
 
-#mutate the Iowa_base76 df to generate the syn_Iowa_shift
-shift_Iowa_base_76 <- Iowa_base76 %>%
-  mutate(syn_Iowa_76_shift = syn_Iowa_76 + optimal_shift)
+
+
 
 
 #PART 5- PLOTS- 3 types, i. Raw Synthetic v Actual, ii. Base year 1976 v Actual, 
