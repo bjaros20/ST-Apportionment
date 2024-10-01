@@ -243,12 +243,7 @@ for (state_name in names(result_list_syn_state)) {
 }
 
 write.csv(optimal_shifts_df,"optimal_shift_by_state.csv", row.names = FALSE)
-
-
-# After the loop, optimal_shifts_df will contain the optimal shift values for each state
-
-
-
+# After the loop optimal_shifts_df will contain the optimal shift values for each state
 
 
 
@@ -262,7 +257,7 @@ ggplot(syn_Iowa, aes(x = year)) +
   geom_vline(xintercept = year_effective_first, color = "black", linewidth = .75) +
   geom_line(aes(y = real_ci_cap, color = "Actual"), size = 1.2) +
   geom_line(aes(y = syn_Iowa, color = "Synthetic"), linetype = "dotdash", size = 1.2) +
-  labs(title = "Actual vs. Synthetic Naive CI per Capita- Iowa",
+  labs(title = "Actual vs. Synthetic CI per Capita- Iowa",
        x = "Year",
        y = "Real CI per Capita ($)") +
   scale_color_manual(values = c("Actual" = "red", "Synthetic" = "blue"),
@@ -275,7 +270,7 @@ ggplot(Iowa_base76, aes(x = year)) +
   geom_vline(xintercept = year_effective_first, color = "black", linewidth = .75) +
   geom_line(aes(y = real_ci_cap_76, color = "Actual"), size = 1.2) +
   geom_line(aes(y = syn_Iowa_76, color = "Synthetic"), linetype = "dotdash", size = 1.2) +
-  labs(title = "Actual vs. Synthetic Naive CI per Capita Iowa- Base Year 1976",
+  labs(title = "Actual vs. Syn CI per Capita Iowa- Base Year 1976",
        x = "Year",
        y = "Real CI per Capita Normalized to 1976") +
   scale_color_manual(values = c("Actual" = "red", "Synthetic" = "blue"),
@@ -288,7 +283,7 @@ ggplot(shift_Iowa_base_76, aes(x = year)) +
   geom_vline(xintercept = year_effective_first, color = "black", linewidth = .75) +
   geom_line(aes(y = real_ci_cap_76, color = "Actual"), size = 1.2) +
   geom_line(aes(y = syn_Iowa_76_shift, color = "Synthetic"), linetype = "dotdash", size = 1.2) +
-  labs(title = "Actual vs. Synthetic Naive CI per Capita Iowa- Base 1976 & Shift",
+  labs(title = "Actual vs. Syn CI per Capita Iowa- Base 1976 & Shift",
        x = "Year",
        y = "Real CI per Capita Normalized to 1976") +
   scale_color_manual(values = c("Actual" = "red", "Synthetic" = "blue"),
@@ -298,18 +293,44 @@ ggplot(shift_Iowa_base_76, aes(x = year)) +
 
 
 # Part 6 Calculate the Percentage Change
-Iowa_perc <- shift_Iowa_base_76 %>%
-  mutate(perc_chan = (real_ci_cap_76-syn_Iowa_76_shift)/syn_Iowa_76_shift)
+# Initialize a list to store the percentage change dataframes for each state
+percent_change_revenue <- list()
 
-#Short Run Percentage Change
-Iowa_SR_perc <- Iowa_perc %>%
-  filter(year %in% c(1978, 1979, 1980)) %>% 
-  summarize(Avg_SR_perc = mean(perc_chan, na.rm = TRUE)) 
-print(Iowa_SR_perc*100)
+# Loop through each state's shifted dataframe in results_percentage
+for (state_name in names(results_percentage)) {
+  
+  # Get the shifted dataframe for the current state
+  shift_state <- results_percentage[[state_name]]
+  
+  # Pull the year_effective[1] for the current state
+  year_effective <- shift_state$year_effective[1] 
+  
+  # Define the short-run years (year_effective[1], year_effective[1] + 1, year_effective[1] + 2)
+  short_run_years <- c(year_effective, year_effective + 1, year_effective + 2)
+  
+  # Calculate the percentage change for the short run (and multiply by 100)
+  SR_perc <- shift_state %>%
+    filter(year %in% short_run_years) %>%
+    mutate(perc_chan = (real_ci_cap_76 - syn_state_76_shift) / ((real_ci_cap_76 + syn_state_76_shift) / 2) * 100) %>%
+    summarize(avg_perc_chan_SR = mean(perc_chan, na.rm = TRUE))
+  
+  # Define the long-run period (you can adjust this as needed)
+  # Assuming the long-run years are all available years after the short run
+  LR_perc <- shift_state %>%
+    filter(year > (year_effective + 2)) %>%
+    mutate(perc_chan = (real_ci_cap_76 - syn_state_76_shift) / ((real_ci_cap_76 + syn_state_76_shift) / 2) * 100) %>%
+    summarize(avg_perc_chan_LR = mean(perc_chan, na.rm = TRUE))
+  
+  # Save both SR_perc and LR_perc in the percent_change_revenue list
+  percent_change_revenue[[paste0(state_name, "_SR_perc")]] <- SR_perc
+  percent_change_revenue[[paste0(state_name, "_LR_perc")]] <- LR_perc
+  
+  # Print the state_name, year_effective, short-run percentage change, and long-run percentage change
+  print(paste("State:", state_name))
+  print(paste("Year Effective:", year_effective))
+  print(paste("Short-Run Percentage Change in Revenue:", formatC(SR_perc$avg_perc_chan_SR, format = "f", digits = 4)))
+  print(paste("Long-Run Percentage Change in Revenue:", formatC(LR_perc$avg_perc_chan_LR, format = "f", digits = 4)))
+}
 
-
-#Long Run percentage Change
-Iowa_LR_perc <- Iowa_perc %>%
-  summarize(Avg_SR_perc = mean(perc_chan))
-print(Iowa_LR_perc*100)
+write.csv(percent_change_revenue,"percent_change_CI_cap.csv",row.names = FALSE)
 
