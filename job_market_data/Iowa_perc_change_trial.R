@@ -43,3 +43,22 @@ shift_Iowa_base_76 <- Iowa_base76 %>%
   mutate(syn_Iowa_76_shift = syn_Iowa_76 + optimal_shift)
 
 
+Iowa_perc <- shift_Iowa_base_76 %>%
+  mutate(perc_chan = (real_ci_cap_76-syn_Iowa_76_shift)/syn_Iowa_76_shift)
+
+#Mid point formula
+Iowa_perc <- shift_Iowa_base_76 %>%
+  mutate(perc_chan = (real_ci_cap_76 - syn_Iowa_76_shift) / ((real_ci_cap_76 + syn_Iowa_76_shift) / 2))
+
+
+#Short Run Percentage Change
+Iowa_SR_perc <- Iowa_perc %>%
+  filter(year %in% c(1978, 1979, 1980)) %>% 
+  summarize(Avg_SR_perc = mean(perc_chan, na.rm = TRUE)) 
+print(Iowa_SR_perc*100)
+
+
+#Long Run percentage Change
+Iowa_LR_perc <- Iowa_perc %>%
+  summarize(Avg_SR_perc = mean(perc_chan))
+print(Iowa_LR_perc*100)
