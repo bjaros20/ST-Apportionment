@@ -292,6 +292,75 @@ ggplot(shift_Iowa_base_76, aes(x = year)) +
   theme_stata()
 
 
+#plots loop
+
+for (state_name in names(results_percentage)) {
+
+# Get the relevant dataframes for the state
+syn_state <- results_percentage[[state_name]]  # Adjust this based on the correct data structure
+
+#remove synthetic state
+clean_state_name <- sub("_synthetic_shift", "", state_name)
+
+# Extract the optimal shift for the current state from optimal_shifts_df
+optimal_shift_value <- optimal_shifts_df %>%
+  filter(trimws(State_Name) == trimws(clean_state_name)) %>%  # trimws to remove any spaces
+  pull(Optimal_Shift)
+
+# Assuming you have data like "shift_state_base_76" and "year_effective_first" available in each state's data:
+year_effective_first <- syn_state$year_effective[1]  # Use the correct column here
+# Raw synthetic vs Actual plot
+plot1 <- ggplot(syn_state, aes(x = year)) +
+  geom_vline(xintercept = year_effective_first, color = "black", linewidth = .75) +
+  geom_line(aes(y = real_ci_cap, color = "Actual"), size = 1.2) +
+  geom_line(aes(y = syn_state, color = "Synthetic"), linetype = "dotdash", size = 1.2) +
+  labs(title = paste("Actual vs. Synthetic CI per Capita -", clean_state_name),
+       x = "Year",
+       y = "Real CI per Capita ($)") +
+  scale_color_manual(values = c("Actual" = "red", "Synthetic" = "blue"),
+                     labels = c("Actual" = paste("Real", clean_state_name), "Synthetic" = paste("Synthetic", clean_state_name))) +
+  guides(color = guide_legend(title = "Corporate Income Type")) +
+  theme_stata()
+
+# Save plot 1
+ggsave(filename = paste0(clean_state_name, "_synthetic_vs_actual_CI.png"), plot = plot1)
+
+# Base Year 1976 synthetic vs Actual plot
+plot2 <- ggplot(syn_state, aes(x = year)) +
+  geom_vline(xintercept = year_effective_first, color = "black", linewidth = .75) +
+  geom_line(aes(y = real_ci_cap_76, color = "Actual"), size = 1.2) +
+  geom_line(aes(y = syn_state_76, color = "Synthetic"), linetype = "dotdash", size = 1.2) +
+  labs(title = paste("Actual vs. Syn CI per Capita", clean_state_name, "- Base Year 1976"),
+       x = "Year",
+       y = "Real CI per Capita Normalized to 1976") +
+  scale_color_manual(values = c("Actual" = "red", "Synthetic" = "blue"),
+                     labels = c("Actual" = paste("Real", clean_state_name), "Synthetic" = paste("Synthetic", clean_state_name))) +
+  guides(color = guide_legend(title = "Corporate Income Type")) +
+  theme_stata()
+
+# Save plot 2
+ggsave(filename = paste0(clean_state_name, "_base_1976_synthetic_vs_actual_CI.png"), plot = plot2)
+
+# Shifted synthetic vs Actual plot and optimal shift in legend
+plot3 <- ggplot(syn_state, aes(x = year)) +
+  geom_vline(xintercept = year_effective_first, color = "black", linewidth = .75) +
+  geom_line(aes(y = real_ci_cap_76, color = "Actual"), size = 1.2) +
+  geom_line(aes(y = syn_state_76_shift, color = "Synthetic"), linetype = "dotdash", size = 1.2) +
+  labs(title = paste("Actual vs. Syn CI per Capita", clean_state_name, "- Base 1976 & Shift"),
+       x = "Year",
+       y = "Real CI per Capita Normalized to 1976") +
+  scale_color_manual(values = c("Actual" = "red", "Synthetic" = "blue"),
+                     labels = c("Actual" = paste("Real", clean_state_name), 
+                                "Synthetic" = paste("Synthetic", clean_state_name, "\nOptimal Shift =", round(optimal_shift_value, 4)))) +  # Add shift value to legend
+  guides(color = guide_legend(title = "Corporate Income Type")) +
+  theme_stata()
+
+
+# Save plot 3
+ggsave(filename = paste0(state_name, "_shift76_synthetic_vs_actual_CI.png"), plot = plot3)
+}
+
+
 # Part 6 Calculate the Percentage Change
 # Initialize a list to store the percentage change dataframes for each state
 percent_change_revenue <- list()
@@ -333,4 +402,7 @@ for (state_name in names(results_percentage)) {
 }
 
 write.csv(percent_change_revenue,"percent_change_CI_cap.csv",row.names = FALSE)
+
+
+
 
