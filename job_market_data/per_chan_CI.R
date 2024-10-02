@@ -250,47 +250,6 @@ write.csv(optimal_shifts_df,"optimal_shift_by_state.csv", row.names = FALSE)
 #PART 5- PLOTS- 3 types, i. Raw Synthetic v Actual, ii. Base year 1976 v Actual, 
 #iii. base year 1976, residual minimization v actual
 
-year_effective_first <- syn_Iowa$year_effective[1]
-
-#i Raw synthetic v Actual
-ggplot(syn_Iowa, aes(x = year)) +
-  geom_vline(xintercept = year_effective_first, color = "black", linewidth = .75) +
-  geom_line(aes(y = real_ci_cap, color = "Actual"), size = 1.2) +
-  geom_line(aes(y = syn_Iowa, color = "Synthetic"), linetype = "dotdash", size = 1.2) +
-  labs(title = "Actual vs. Synthetic CI per Capita- Iowa",
-       x = "Year",
-       y = "Real CI per Capita ($)") +
-  scale_color_manual(values = c("Actual" = "red", "Synthetic" = "blue"),
-                     labels = c("Actual" = "Real Iowa", "Synthetic" = "Synthetic Iowa")) +
-  guides(color = guide_legend(title = "Corporate Income Type")) +
-  theme_stata()
-
-# ii Base Year 1976 synthetic v actual
-ggplot(Iowa_base76, aes(x = year)) +
-  geom_vline(xintercept = year_effective_first, color = "black", linewidth = .75) +
-  geom_line(aes(y = real_ci_cap_76, color = "Actual"), size = 1.2) +
-  geom_line(aes(y = syn_Iowa_76, color = "Synthetic"), linetype = "dotdash", size = 1.2) +
-  labs(title = "Actual vs. Syn CI per Capita Iowa- Base Year 1976",
-       x = "Year",
-       y = "Real CI per Capita Normalized to 1976") +
-  scale_color_manual(values = c("Actual" = "red", "Synthetic" = "blue"),
-                     labels = c("Actual" = "Real Iowa", "Synthetic" = "Synthetic Iowa")) +
-  guides(color = guide_legend(title = "Corporate Income Type")) +
-  theme_stata()
-
-#iii) Shift
-ggplot(shift_Iowa_base_76, aes(x = year)) +
-  geom_vline(xintercept = year_effective_first, color = "black", linewidth = .75) +
-  geom_line(aes(y = real_ci_cap_76, color = "Actual"), size = 1.2) +
-  geom_line(aes(y = syn_Iowa_76_shift, color = "Synthetic"), linetype = "dotdash", size = 1.2) +
-  labs(title = "Actual vs. Syn CI per Capita Iowa- Base 1976 & Shift",
-       x = "Year",
-       y = "Real CI per Capita Normalized to 1976") +
-  scale_color_manual(values = c("Actual" = "red", "Synthetic" = "blue"),
-                     labels = c("Actual" = "Real Iowa", "Synthetic" = "Synthetic Iowa")) +
-  guides(color = guide_legend(title = "Corporate Income Type")) +
-  theme_stata()
-
 
 #plots loop
 
