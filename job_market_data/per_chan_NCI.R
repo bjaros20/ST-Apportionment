@@ -330,31 +330,90 @@ for (state_name in names(results_percentage)) {
   # Pull the year_effective[1] for the current state
   year_effective <- shift_state$year_effective[1] 
   
-  # Define the short-run years (year_effective[1], year_effective[1] + 1, year_effective[1] + 2)
+  # Define the short-run years
   short_run_years <- c(year_effective, year_effective + 1, year_effective + 2)
   
-  # Calculate the percentage change for the short run (and multiply by 100)
-  SR_perc <- shift_state %>%
+  # Calculate the short-run percentage change
+  short_run_data <- shift_state %>%
     filter(year %in% short_run_years) %>%
-    mutate(perc_chan = (real_NCI_cap_76 - syn_state_76_shift) / ((real_NCI_cap_76 + syn_state_76_shift) / 2) * 100) %>%
-    summarize(avg_perc_chan_SR = mean(perc_chan, na.rm = TRUE))
+    mutate(perc_chan = (real_NCI_cap_76 - syn_state_76_shift) / ((real_NCI_cap_76 + syn_state_76_shift) / 2) * 100)
   
-  # Define the long-run period (you can adjust this as needed)
-  # Assuming the long-run years are all available years after the short run
-  LR_perc <- shift_state %>%
-    filter(year > (year_effective + 2)) %>%
-    mutate(perc_chan = (real_NCI_cap_76 - syn_state_76_shift) / ((real_NCI_cap_76 + syn_state_76_shift) / 2) * 100) %>%
-    summarize(avg_perc_chan_LR = mean(perc_chan, na.rm = TRUE))
+  # Check if short_run_data is a valid data frame
+  if (nrow(short_run_data) > 0) {
+    avg_SR_perc <- short_run_data %>%
+      summarize(avg_perc_chan_SR = mean(perc_chan, na.rm = TRUE))
+  } else {
+    avg_SR_perc <- data.frame(avg_perc_chan_SR = NA)
+  }
   
-  # Save both SR_perc and LR_perc in the percent_change_revenue list
-  percent_change_revenue[[paste0(state_name, "_SR_perc")]] <- SR_perc
-  percent_change_revenue[[paste0(state_name, "_LR_perc")]] <- LR_perc
+  # Define long-run years
+  long_run_years <- c(year_effective, year_effective + 1, year_effective + 2, 
+                      unique(shift_state$year[shift_state$year > (year_effective + 2)]))
   
-  # Print the state_name, year_effective, short-run percentage change, and long-run percentage change
-  print(paste("State:", state_name))
-  print(paste("Year Effective:", year_effective))
-  print(paste("Short-Run Percentage Change in Revenue:", formatC(SR_perc$avg_perc_chan_SR, format = "f", digits = 4)))
-  print(paste("Long-Run Percentage Change in Revenue:", formatC(LR_perc$avg_perc_chan_LR, format = "f", digits = 4)))
+  # Calculate long-run percentage change
+  long_run_data <- shift_state %>%
+    filter(year %in% long_run_years) %>%
+    mutate(perc_chan = (real_NCI_cap_76 - syn_state_76_shift) / ((real_NCI_cap_76 + syn_state_76_shift) / 2) * 100)
+  
+  # Check if long_run_data is a valid data frame
+  if (nrow(long_run_data) > 0) {
+    avg_LR_perc <- long_run_data %>%
+      summarize(avg_perc_chan_LR = mean(perc_chan, na.rm = TRUE),
+                num_years_LR = n())
+  } else {
+    avg_LR_perc <- data.frame(avg_perc_chan_LR = NA, num_years_LR = 0)
+  }
+  
+  # Define years for 6-year long run
+  years_6 <- c(year_effective:(year_effective + 5))
+  # Calculate 6-Year Long-Run Percentage Change
+  long_run_6_data <- shift_state %>%
+    filter(year %in% years_6) %>%
+    mutate(perc_chan = (real_NCI_cap_76 - syn_state_76_shift) / ((real_NCI_cap_76 + syn_state_76_shift) / 2) * 100)
+  
+  # Check if long_run_6_data is a valid data frame
+  if (nrow(long_run_6_data) > 0) {
+    avg_LR_perc_6 <- long_run_6_data %>%
+      summarize(avg_perc_chan_LR_6 = ifelse(n() >= 6, mean(perc_chan, na.rm = TRUE), NA_real_),
+                num_years_LR_6 = n())
+  } else {
+    avg_LR_perc_6 <- data.frame(avg_perc_chan_LR_6 = NA, num_years_LR_6 = 0)
+  }
+  
+  # Define years for 10-year long run
+  years_10 <- c(year_effective:(year_effective + 9))
+  # Calculate 10-Year Long-Run Percentage Change
+  long_run_10_data <- shift_state %>%
+    filter(year %in% years_10) %>%
+    mutate(perc_chan = (real_NCI_cap_76 - syn_state_76_shift) / ((real_NCI_cap_76 + syn_state_76_shift) / 2) * 100)
+  
+  # Check if long_run_10_data is a valid data frame
+  if (nrow(long_run_10_data) > 0) {
+    avg_LR_perc_10 <- long_run_10_data %>%
+      summarize(avg_perc_chan_LR_10 = ifelse(n() >= 10, mean(perc_chan, na.rm = TRUE), NA_real_),
+                num_years_LR_10 = n())
+  } else {
+    avg_LR_perc_10 <- data.frame(avg_perc_chan_LR_10 = NA, num_years_LR_10 = 0)
+  }
+  
+  # Save results
+  percent_change_revenue[[paste0(state_name, "_SR_perc")]] <- avg_SR_perc
+  percent_change_revenue[[paste0(state_name, "_LR_perc")]] <- avg_LR_perc
+  percent_change_revenue[[paste0(state_name, "_LR_6_perc")]] <- avg_LR_perc_6
+  percent_change_revenue[[paste0(state_name, "_LR_10_perc")]] <- avg_LR_perc_10
+  
+  # Print results
+  cat("State:", state_name, "\n")
+  cat("Year of Effective Change:", year_effective, "\n")
+  cat("Average Short-Run Percentage Change:", avg_SR_perc$avg_perc_chan_SR, "%\n")
+  cat("Average Long-Run Percentage Change:", avg_LR_perc$avg_perc_chan_LR, "% (", avg_LR_perc$num_years_LR, " years)\n")
+  cat("Average 6-Year Long-Run Percentage Change:", avg_LR_perc_6$avg_perc_chan_LR_6, "% (", avg_LR_perc_6$num_years_LR_6, " years)\n")
+  cat("Average 10-Year Long-Run Percentage Change:", avg_LR_perc_10$avg_perc_chan_LR_10, "% (", avg_LR_perc_10$num_years_LR_10, " years)\n")
 }
 
+
+
 write.csv(percent_change_revenue,"NCI_percent_change_CI_cap.csv",row.names = FALSE)
+
+
+

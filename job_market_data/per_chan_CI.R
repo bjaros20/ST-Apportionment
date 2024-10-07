@@ -183,6 +183,7 @@ for (state_name in names(result_list_controls)) {
 #save the sum_weight_df
 write.csv(sum_weight_df,"sDiD_weights_SUMMED_by_state.csv", row.names = FALSE)
 
+weight_sum <-read.csv("sDiD_weights_SUMMED_by_state.csv")
 
 #notes from the Iowa run
 #Sum weights, note the synthetic control weights do not sum to 1.  NOTE IN DATA OR EMP APPROACH SECTION
@@ -245,7 +246,7 @@ for (state_name in names(result_list_syn_state)) {
 write.csv(optimal_shifts_df,"optimal_shift_by_state.csv", row.names = FALSE)
 # After the loop optimal_shifts_df will contain the optimal shift values for each state
 
-
+opt_shift <-read.csv("optimal_shift_by_state.csv")
 
 #PART 5- PLOTS- 3 types, i. Raw Synthetic v Actual, ii. Base year 1976 v Actual, 
 #iii. base year 1976, residual minimization v actual
