@@ -377,3 +377,25 @@ summary_stats <- filt_Corp %>%
   )
 
 print(summary_stats,n = nrow(summary_stats))
+
+
+
+LR_NCI <- read.csv("sDiD_point_estimate_list_NCI_long_run.csv")
+
+
+print(
+  LR_NCI %>%
+    select(Effective_Year:P_Value_Two_Tail) %>%
+    mutate(across(where(is.numeric), ~ formatC(.x, format = "f", digits = 4))) %>%
+    replace_na(list(
+      Effective_Year = "NA",
+      P_Value_Two_Tail = "NA"  # Replace NA for the relevant columns
+    )),
+  n = Inf
+)
+
+Sel_LR_NCI <- LR_NCI %>%
+  select(State:P_Value_Two_Tail)
+
+
+print(Sel_LR_NCI)

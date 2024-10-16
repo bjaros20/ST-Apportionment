@@ -134,25 +134,25 @@ for (state_name in names(result_list)) {
   cat(sprintf('p-value: %1.4f\n', p_value_two_tail))
 #  cat(sprintf('p-value-"left-tail": %1.4f\n', p_value_left_tail))
 #  cat(sprintf('p-value-"right-tail": %1.4f\n', p_value_right_tail))
-
+  #removed plot from loop for second time.
+  plot <- plot(current_tau_hat) +
+    geom_vline(xintercept = current_year, linetype = "dotted", color = "black", linewidth = 1) +  # Checkered line at current_year
+    labs(x = "Year", y = "Ln(Corporate Income)") +
+    ggtitle(paste("SDID", state_name, "- Short Run")) +
+    theme_fivethirtyeight() +
+    theme(
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 12),
+      axis.text.x = element_text(size = 10),
+      axis.text.y = element_text(size = 10),
+      plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+      axis.line = element_line(linewidth = 0.5, colour = "black")
+    )
+  # Save each plot as an image
+  ggsave(filename = paste0(state_name, "_sDiD_log_ci_short_run.png"), plot = plot, width = 6.5, height = 3.75)
 }
 
-#removed plot from loop for second time.
-plot <- plot(current_tau_hat) +
-  geom_vline(xintercept = current_year, linetype = "dotted", color = "black", linewidth = 1) +  # Checkered line at current_year
-  labs(x = "Year", y = "Ln(Corporate Income)") +
-  ggtitle(paste("SDID", state_name, "- Short Run")) +
-  theme_fivethirtyeight() +
-  theme(
-    axis.title.x = element_text(size = 12),
-    axis.title.y = element_text(size = 12),
-    axis.text.x = element_text(size = 10),
-    axis.text.y = element_text(size = 10),
-    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
-    axis.line = element_line(linewidth = 0.5, colour = "black")
-  )
-# Save each plot as an image
-ggsave(filename = paste0(state_name, "_sDiD_log_ci_short_run.png"), plot = plot)
+
 
 #For the long run, I order the list and create a dataframe for each treatment state
 #that dataframe just consists of the treated state and units in the control.
@@ -307,23 +307,25 @@ for (state_name in names(result_list_long_run)) {
   cat(sprintf('t-statistic: %1.3f\n', t_statistic))
   cat(sprintf('p-value: %1.4f\n', p_value))
   
+  plot <- plot(current_tau_hat) +
+    geom_vline(xintercept = current_year, linetype = "dotted", color = "black", linewidth = 1) +  # Checkered line at current_year
+    labs(x = "Year", y = "Ln(Corporate Income)") +
+    ggtitle(paste("SDID", state_name, "- Long Run")) +
+    theme_fivethirtyeight() +
+    theme(
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 12),
+      axis.text.x = element_text(size = 10),
+      axis.text.y = element_text(size = 10),
+      plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+      axis.line = element_line(linewidth = 0.5, colour = "black")
+    )
+  # Save each plot as an image
+  ggsave(filename = paste0(state_name, "_sDiD_log_ci_long_run.png"), plot = plot, width = 6.5, height = 3.75)  
+  
 }
 
-plot <- plot(current_tau_hat) +
-  geom_vline(xintercept = current_year, linetype = "dotted", color = "black", linewidth = 1) +  # Checkered line at current_year
-  labs(x = "Year", y = "Ln(Corporate Income)") +
-  ggtitle(paste("SDID", state_name, "- Long Run")) +
-  theme_fivethirtyeight() +
-  theme(
-    axis.title.x = element_text(size = 12),
-    axis.title.y = element_text(size = 12),
-    axis.text.x = element_text(size = 10),
-    axis.text.y = element_text(size = 10),
-    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
-    axis.line = element_line(linewidth = 0.5, colour = "black")
-  )
-# Save each plot as an image
-ggsave(filename = paste0(state_name, "_sDiD_log_ci_long_run.png"), plot = plot)
+
 
 
 
