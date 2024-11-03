@@ -38,7 +38,7 @@ write.csv(log_nci,"naive_ci.csv",row.names=FALSE)
 
 
 #Create base dataframe that has log_ci as dependent variable.
-filt_Corp <-log_nci %>%
+filt_Corp <-naive_ci %>%
   select(State_Acronym,year,year_effective,State_Name,log_ci,Post)
 
 #Create State Dataframes
@@ -148,8 +148,10 @@ for (state_name in names(result_list)) {
       plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
       axis.line = element_line(linewidth = 0.5, colour = "black")
     )
+  
+  plot(plot)
   # Save each plot as an image
-  ggsave(filename = paste0(state_name, "_sDiD_log_ci_short_run.png"), plot = plot, width = 6.5, height = 3.75)
+  # ggsave(filename = paste0(state_name, "_sDiD_log_ci_short_run.png"), plot = plot, width = 6.5, height = 3.75)
 }
 
 
