@@ -24,51 +24,40 @@ naive_ci<-read.csv("naive_ci.csv")
 
 #filter to necessary variables
 filt_Corp <-naive_ci %>%
-  select(State_Acronym,year,year_effective,State_Name,log_ci,Post)
+  select(State_Acronym,year,year_effective,State_Name,log_ci,Post, rel_year)
 
 
-#create a loop for the stacked DiD, creates an event-level dataset
-#create result list to store dataframe
-result_list <- list()
-# Make a copy of the original dataframe to work with
-original_df <- filt_Corp
-#counter variable, so as loop progresses, drops first state
-counter <- 1
+#start with one state, nebraska
+# Define the state of interest
+state_of_interest <- "Nebraska"
 
+# Filter for the state of interest and its treatment year
+treatment_year <- filt_Corp %>%
+  filter(State_Name == state_of_interest) %>%
+  pull(year_effective) %>%
+  unique()  # Ensure we get a unique value for the treatment year
 
-# Prepare for stacked DiD by creating an event-level dataset
-stacked_df <- data.frame()
+# 1. Define the Treated Event for Nebraska
+# Filter data for Nebraska within the -4 to +4 relative year window around the treatment year
+treatment_event <- filt_Corp %>%
+  filter(State_Name == state_of_interest & rel_year >= -4 & rel_year <= 4) %>%
+  mutate(treated = 1,  # Mark as treated
+         event_id = paste(state_of_interest, treatment_year, sep = "_"))  # Create unique event ID
 
-for (state_name in unique(filt_Corp$State_Name)) {
-  # Reset original dataframe each loop
-  df <- filt_Corp
-  
-  # Arrange by year_effective and select the first state for treatment
-  df <- df %>% arrange(year_effective)
-  
-  # Get treatment year for the current state
-  treatment_year <- df %>% filter(State_Name == state_name) %>% pull(year_effective)
-  
-  # Define the treated event and clean comparison groups
-  treatment_event <- df %>%
-    filter(State_Name == state_name & year == treatment_year)
-  
-  clean_control <- df %>%
-    filter(
-      !(State_Name == state_name) &
-        (is.na(year_effective) | abs(year_effective - treatment_year) > 4)  # no major reforms +/- 4 years
-    )
-  
-  # Stack each treatment event and control data
-  event_data <- bind_rows(treatment_event, clean_control)
-  
-  # Add identifier for each stacked event
-  event_data <- event_data %>% 
-    mutate(event_id = paste(state_name, treatment_year, sep = "_"),
-           treated = ifelse(State_Name == state_name, 1, 0))  # 1 for treatment state
-  
-  # Add to stacked dataframe
-  stacked_df <- bind_rows(stacked_df, event_data)
-}
+# 2. Define the Clean Control Group
+# Step (1): Filter states that adopt SSFA within the treatment_year + 4 window
+remaining_control <- filt_Corp %>%
+  filter(State_Name != state_of_interest) %>%  # Exclude the treatment state
+  filter(is.na(year_effective) | year_effective > (treatment_year + 4))  # Exclude states adopting within 4 years after treatment
+
+# Step (2): For remaining states, keep only observations within the -4 to +4 year window relative to Nebraska's treatment year
+clean_control <- remaining_control %>%
+  filter(year >= (treatment_year - 4) & year <= (treatment_year + 4)) %>%
+  mutate(treated = 0,  # Mark as control
+         event_id = paste(state_of_interest, treatment_year, sep = "_"))  # Use same event ID
+
+# Combine treatment and control data for Nebraska's event
+nebraska_event_data <- bind_rows(treatment_event, clean_control)
+
 
 
