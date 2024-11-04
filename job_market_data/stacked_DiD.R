@@ -60,4 +60,48 @@ clean_control <- remaining_control %>%
 nebraska_event_data <- bind_rows(treatment_event, clean_control)
 
 
+# Stacked DiD loop
+# Initialize an empty dataframe to store the stacked event-level data
+stacked_df <- data.frame()
+
+# Order states by year_effective to ensure chronological processing
+ordered_states <- filt_Corp %>%
+  filter(!is.na(year_effective)) %>%  # Only include states with a defined year_effective
+  filter(year_effective >= 1980 & year_effective <= 2018) %>%  # Keep only events between 1980 and 2018, removes IA and late switchers
+  arrange(year_effective) %>%
+  distinct(State_Acronym, year_effective)
+
+# Loop through each state and its treatment year
+for (i in seq_len(nrow(ordered_states))) {
+  # Define the state of interest and its treatment year
+  state_of_interest <- ordered_states$State_Acronym[i]
+  treatment_year <- ordered_states$year_effective[i]
+  
+  # 1. Define the Treated Event for the current state
+  treatment_event <- filt_Corp %>%
+    filter(State_Acronym == state_of_interest & rel_year >= -4 & rel_year <= 4) %>%
+    mutate(treated = 1,  # Mark as treated
+           event_id = paste(state_of_interest, treatment_year, sep = "_"))  # Unique event ID
+  
+  # 2. Define the Clean Control Group
+  # Step (1): Filter states that do not adopt SSFA within treatment_year + 4 window
+  remaining_control <- filt_Corp %>%
+    filter(State_Acronym != state_of_interest) %>%  # Exclude treatment state
+    filter(is.na(year_effective) | year_effective > (treatment_year + 4))  # Exclude states with SSFA adoption within +4 years
+  
+  # Step (2): Keep only observations within the -4 to +4 year window relative to the treatment year
+  clean_control <- remaining_control %>%
+    filter(year >= (treatment_year - 4) & year <= (treatment_year + 4)) %>%
+    mutate(treated = 0,  # Mark as control
+           event_id = paste(state_of_interest, treatment_year, sep = "_"))  # Use same event ID
+  
+  # Combine the treatment and control data for the current state’s event
+  event_data <- bind_rows(treatment_event, clean_control)
+  
+  # Append the event data to the stacked dataframe
+  stacked_df <- bind_rows(stacked_df, event_data)
+}
+
+
+
 
