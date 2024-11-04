@@ -11,7 +11,7 @@ library(did) # for running DiD
 library(plm)
 library(lmtest)
 library(synthdid)
-library(fixest)
+library(fixest) # for stacked DiD
 library(boot)
 library(ggthemes)
 
@@ -84,10 +84,12 @@ for (i in seq_len(nrow(ordered_states))) {
            event_id = paste(state_of_interest, treatment_year, sep = "_"))  # Unique event ID
   
   # 2. Define the Clean Control Group
-  # Step (1): Filter states that do not adopt SSFA within treatment_year + 4 window
   remaining_control <- filt_Corp %>%
     filter(State_Acronym != state_of_interest) %>%  # Exclude treatment state
-    filter(is.na(year_effective) | year_effective > (treatment_year + 4))  # Exclude states with SSFA adoption within +4 years
+    filter(is.na(year_effective) | year_effective > (treatment_year + 4)) %>%  # Exclude states with SSFA adoption within +4 years
+    # Additional Filters for Ohio
+    filter(!(State_Acronym == "OH" & year < 2008)) %>%  # Remove Ohio for all years prior to 2008, Oh always giving problems
+    filter(!(State_Acronym == "OH" & year_effective > 2004)) # 
   
   # Step (2): Keep only observations within the -4 to +4 year window relative to the treatment year
   clean_control <- remaining_control %>%
@@ -102,6 +104,28 @@ for (i in seq_len(nrow(ordered_states))) {
   stacked_df <- bind_rows(stacked_df, event_data)
 }
 
+na_summary <- stacked_df %>%
+  summarize_all(~ sum(is.na(.)))
+
+# View the summary to see where NA values are located
+print(na_summary)
 
 
+#Check for NA values
+stacked_df <- stacked_df %>%
+  filter(!is.na(log_ci), !is.na(treated), !is.na(Post), !is.na(rel_year), !is.na(event_id), !is.na(year))
 
+
+# Part II- use Fixest to estimate Stacked_df
+
+# `stacked_df` is the data. `log_ci` id dependent variable of interest, 
+# `treated` = treated state in that event, `post' gives the treatment effect
+# rel_year`, `
+# event_id` unique for each treated state and clean control group, and `year`
+
+model <- feols(
+  log_ci ~ treated * Post + i(rel_year, ref = -1) | event_id + year,
+  data = stacked_df,
+  cluster = ~State_Acronym
+)
+summary(model)
