@@ -111,9 +111,7 @@ na_summary <- stacked_df %>%
 print(na_summary)
 
 
-#Check for NA values
-stacked_df <- stacked_df %>%
-  filter(!is.na(log_ci), !is.na(treated), !is.na(Post), !is.na(rel_year), !is.na(event_id), !is.na(year))
+
 
 
 # Part II- use Fixest to estimate Stacked_df
@@ -123,8 +121,35 @@ stacked_df <- stacked_df %>%
 # rel_year`, `
 # event_id` unique for each treated state and clean control group, and `year`
 
+# Replace NA values in rel_year for control states with a default category
+stacked_df <- stacked_df %>%
+  mutate(rel_year = ifelse(is.na(rel_year), -99, rel_year))  # Use -99 as a placeholder for controls
+
+# Now, run the model with rel_year coded this way
 model <- feols(
   log_ci ~ treated * Post + i(rel_year, ref = -1) | event_id + year,
+  data = stacked_df,
+  cluster = ~State_Acronym
+)
+
+summary(model)
+
+
+
+# Model above removed treated:Post because of multicollinearity.  Therefore, will estimate with only Post
+model <- feols(
+  log_ci ~ Post + i(rel_year, ref = -1) | event_id + year,
+  data = stacked_df,
+  cluster = ~State_Acronym
+)
+summary(model)
+
+# Create a unique identifier for each year within each event
+stacked_df$year_event_id <- as.factor(paste(stacked_df$year, stacked_df$event_id, sep = "_"))
+
+# Run the model with the new identifier as a fixed effect
+model <- feols(
+  log_ci ~ treated * i(rel_year, ref = -1) | event_id + year_event_id,
   data = stacked_df,
   cluster = ~State_Acronym
 )
