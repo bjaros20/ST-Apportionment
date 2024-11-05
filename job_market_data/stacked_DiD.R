@@ -111,7 +111,7 @@ na_summary <- stacked_df %>%
 print(na_summary)
 
 
-
+write.csv(stacked_df,"stacked_DiD.csv",row.names=FALSE)
 
 
 # Part II- use Fixest to estimate Stacked_df
