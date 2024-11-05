@@ -81,7 +81,8 @@ for (i in seq_len(nrow(ordered_states))) {
   treatment_event <- filt_Corp %>%
     filter(State_Acronym == state_of_interest & rel_year >= -4 & rel_year <= 4) %>%
     mutate(treated = 1,  # Mark as treated
-           event_id = paste(state_of_interest, treatment_year, sep = "_"))  # Unique event ID
+           event_id = paste(state_of_interest, treatment_year, sep = "_"),
+           rel_year_did = rel_year)  # Unique event ID
   
   # 2. Define the Clean Control Group
   remaining_control <- filt_Corp %>%
@@ -95,7 +96,8 @@ for (i in seq_len(nrow(ordered_states))) {
   clean_control <- remaining_control %>%
     filter(year >= (treatment_year - 4) & year <= (treatment_year + 4)) %>%
     mutate(treated = 0,  # Mark as control
-           event_id = paste(state_of_interest, treatment_year, sep = "_"))  # Use same event ID
+           event_id = paste(state_of_interest, treatment_year, sep = "_"),
+           rel_year_did = year - treatment_year)  # Use same event ID
   
   # Combine the treatment and control data for the current state’s event
   event_data <- bind_rows(treatment_event, clean_control)
@@ -121,36 +123,16 @@ write.csv(stacked_df,"stacked_DiD.csv",row.names=FALSE)
 # rel_year`, `
 # event_id` unique for each treated state and clean control group, and `year`
 
-# Replace NA values in rel_year for control states with a default category
+# Create a unique identifier for each year and event_id combination
 stacked_df <- stacked_df %>%
-  mutate(rel_year = ifelse(is.na(rel_year), -99, rel_year))  # Use -99 as a placeholder for controls
+  mutate(year_event_id = paste(year, event_id, sep = "_"))
 
-# Now, run the model with rel_year coded this way
+# Run the model with rel_year_did and year_event_id
 model <- feols(
-  log_ci ~ treated * Post + i(rel_year, ref = -1) | event_id + year,
-  data = stacked_df,
-  cluster = ~State_Acronym
-)
-
-summary(model)
-
-
-
-# Model above removed treated:Post because of multicollinearity.  Therefore, will estimate with only Post
-model <- feols(
-  log_ci ~ Post + i(rel_year, ref = -1) | event_id + year,
+  log_ci ~ treated * i(rel_year_did, ref = -1) | event_id + year_event_id,
   data = stacked_df,
   cluster = ~State_Acronym
 )
 summary(model)
 
-# Create a unique identifier for each year within each event
-stacked_df$year_event_id <- as.factor(paste(stacked_df$year, stacked_df$event_id, sep = "_"))
 
-# Run the model with the new identifier as a fixed effect
-model <- feols(
-  log_ci ~ treated * i(rel_year, ref = -1) | event_id + year_event_id,
-  data = stacked_df,
-  cluster = ~State_Acronym
-)
-summary(model)
