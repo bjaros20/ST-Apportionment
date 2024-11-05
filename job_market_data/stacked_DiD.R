@@ -135,4 +135,18 @@ model <- feols(
 )
 summary(model)
 
+#
+library(plm)
 
+# Convert data to pdata.frame
+stacked_df <- pdata.frame(stacked_df, index = c("event_id", "State_Acronym"))
+
+# Run model without interaction in plm
+model_plm <- plm(
+  log_ci ~ treated + i(rel_year_did, ref = -1),  # No interaction term
+  data = stacked_df,
+  model = "within",  # Fixed-effects model
+  effect = "twoways"  # Include both "event_id" and "year_event_id"
+)
+
+summary(model_plm)
