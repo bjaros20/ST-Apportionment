@@ -22,9 +22,15 @@ setwd("~/Documents/GitHub/ST-Apportionment/job_market_data")
 
 naive_ci<-read.csv("naive_ci.csv")
 
+#create log real naive CI
+real_log_nci <- naive_ci %>%
+  mutate(real_log_nci = log(real_ci))
+
+write.csv(real_log_nci,"real_log_nci.csv", row.names = FALSE)
+
 #filter to necessary variables
-filt_Corp <-naive_ci %>%
-  select(State_Acronym,year,year_effective,State_Name,log_ci,Post, rel_year)
+filt_Corp <-real_log_nci %>%
+  select(State_Acronym,year,year_effective,State_Name,real_log_nci,Post, rel_year)
 
 
 #start with one state, nebraska
@@ -113,12 +119,12 @@ na_summary <- stacked_df %>%
 print(na_summary)
 
 
-write.csv(stacked_df,"stacked_DiD.csv",row.names=FALSE)
+write.csv(stacked_df,"stacked__nci_DiD.csv",row.names=FALSE)
 
 
 # Part II- use Fixest to estimate Stacked_df
 
-# `stacked_df` is the data. `log_ci` id dependent variable of interest, 
+# `stacked_df` is the data. `real_log_nci` id dependent variable of interest, 
 # `treated` = treated state in that event, `post' gives the treatment effect
 # rel_year`, `
 # event_id` unique for each treated state and clean control group, and `year`
@@ -127,13 +133,7 @@ write.csv(stacked_df,"stacked_DiD.csv",row.names=FALSE)
 stacked_df <- stacked_df %>%
   mutate(year_event_id = paste(year, event_id, sep = "_"))
 
-# Run the model with rel_year_did and year_event_id
-model <- feols(
-  log_ci ~ treated * i(rel_year_did, ref = -1) | event_id + year_event_id,
-  data = stacked_df,
-  cluster = ~State_Acronym
-)
-summary(model)
+
 
 #
 library(plm)
@@ -143,8 +143,8 @@ stacked_df2 <- pdata.frame(stacked_df, index = c("event_id", "State_Acronym", "y
 
 # Run model without interaction in plm
 model_plm <- plm(
-  log_ci ~ treated + i(rel_year_did, ref = -1),  # No interaction term
-  data = stacked_df,
+  real_log_nci ~ treated + i(rel_year_did, ref = -1),  # No interaction term
+  data = stacked_df2,
   model = "within",  # Fixed-effects model
   effect = "twoways"  # Include both "event_id" and "year_event_id"
 )
@@ -153,16 +153,16 @@ summary(model_plm)
 
 
 #Coefficients:
-#  Estimate Std. Error  t-value  Pr(>|t|)    
-#treated                      0.018902   0.027386   0.6902  0.490090    
-#i(rel_year_did, ref = -1)-4 -0.243639   0.019147 -12.7244 < 2.2e-16 ***
-#  i(rel_year_did, ref = -1)-3 -0.180098   0.019147  -9.4059 < 2.2e-16 ***
-#  i(rel_year_did, ref = -1)-2 -0.100401   0.019147  -5.2436 1.631e-07 ***
-#  i(rel_year_did, ref = -1)0   0.055672   0.019147   2.9075  0.003657 ** 
-#  i(rel_year_did, ref = -1)1   0.087615   0.019147   4.5758 4.844e-06 ***
-#  i(rel_year_did, ref = -1)2   0.056931   0.019147   2.9733  0.002958 ** 
-#  i(rel_year_did, ref = -1)3   0.050316   0.019147   2.6278  0.008616 ** 
-#  i(rel_year_did, ref = -1)4   0.103103   0.019147   5.3847 7.543e-08 ***
+#Estimate Std. Error t-value  Pr(>|t|)    
+#treated                      0.018902   0.027045  0.6989   0.48464    
+#i(rel_year_did, ref = -1)-4 -0.170329   0.018909 -9.0077 < 2.2e-16 ***
+#  i(rel_year_did, ref = -1)-3 -0.131698   0.018909 -6.9648 3.656e-12 ***
+#  i(rel_year_did, ref = -1)-2 -0.074603   0.018909 -3.9454 8.063e-05 ***
+#  i(rel_year_did, ref = -1)0   0.031089   0.018909  1.6441   0.10020    
+#i(rel_year_did, ref = -1)1   0.034240   0.018909  1.8108   0.07023 .  
+#i(rel_year_did, ref = -1)2  -0.015696   0.018909 -0.8301   0.40654    
+#i(rel_year_did, ref = -1)3  -0.040829   0.018909 -2.1592   0.03087 *  
+ # i(rel_year_did, ref = -1)4  -0.012788   0.018909 -0.6763   0.49889   
 
 #Plot for Stacked DiD
 library(broom)
@@ -190,9 +190,11 @@ ggplot(plot_data, aes(x = rel_year_did, y = estimate)) +
   geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2) +
   geom_hline(yintercept = 0, linetype = "dashed") +
   labs(
-    title = "Stacked Difference-in-Differences Plot of Treatment Effects by Relative Year",
+    title = "Stacked Difference-in-Differences Plot of SSFA by Relative Year",
     x = "Relative Year",
     y = "Estimated Effect on Log(Corporate Income)"
   ) +
   theme_stata()
+
+
 
