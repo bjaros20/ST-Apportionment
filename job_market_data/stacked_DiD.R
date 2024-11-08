@@ -139,7 +139,7 @@ summary(model)
 library(plm)
 
 # Convert data to pdata.frame
-stacked_df <- pdata.frame(stacked_df, index = c("event_id", "State_Acronym"))
+stacked_df2 <- pdata.frame(stacked_df, index = c("event_id", "State_Acronym", "year"))
 
 # Run model without interaction in plm
 model_plm <- plm(
@@ -150,3 +150,49 @@ model_plm <- plm(
 )
 
 summary(model_plm)
+
+
+#Coefficients:
+#  Estimate Std. Error  t-value  Pr(>|t|)    
+#treated                      0.018902   0.027386   0.6902  0.490090    
+#i(rel_year_did, ref = -1)-4 -0.243639   0.019147 -12.7244 < 2.2e-16 ***
+#  i(rel_year_did, ref = -1)-3 -0.180098   0.019147  -9.4059 < 2.2e-16 ***
+#  i(rel_year_did, ref = -1)-2 -0.100401   0.019147  -5.2436 1.631e-07 ***
+#  i(rel_year_did, ref = -1)0   0.055672   0.019147   2.9075  0.003657 ** 
+#  i(rel_year_did, ref = -1)1   0.087615   0.019147   4.5758 4.844e-06 ***
+#  i(rel_year_did, ref = -1)2   0.056931   0.019147   2.9733  0.002958 ** 
+#  i(rel_year_did, ref = -1)3   0.050316   0.019147   2.6278  0.008616 ** 
+#  i(rel_year_did, ref = -1)4   0.103103   0.019147   5.3847 7.543e-08 ***
+
+#Plot for Stacked DiD
+library(broom)
+
+
+# Extract coefficients related to `rel_year_did`
+tidy_model <- broom::tidy(model_plm)
+
+# Filter only for the `rel_year_did` coefficients and add -1 as the reference year
+plot_data <- tidy_model %>%
+  filter(grepl("rel_year_did", term)) %>%  # Keep only rel_year_did terms
+  mutate(
+    rel_year_did = as.numeric(gsub(".*\\)", "", term)),  # Extract year from term name
+    conf.low = estimate - 1.96 * std.error,  # Lower bound of 95% CI
+    conf.high = estimate + 1.96 * std.error   # Upper bound of 95% CI
+  )
+
+# Check output
+print(plot_data)
+
+# Plot
+ggplot(plot_data, aes(x = rel_year_did, y = estimate)) +
+  geom_point() +
+  geom_line() +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(
+    title = "Stacked Difference-in-Differences Plot of Treatment Effects by Relative Year",
+    x = "Relative Year",
+    y = "Estimated Effect on Log(Corporate Income)"
+  ) +
+  theme_stata()
+
