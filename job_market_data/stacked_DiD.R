@@ -196,7 +196,8 @@ ggplot(plot_data, aes(x = rel_year_did, y = estimate)) +
     y = "Estimated Effect on Log(Corporate Income)"
   ) +
   scale_x_continuous(breaks = -4:4) +  # Ensure all event years from -4 to 4 appear on x-axis
-  theme_stata()
+  theme_minimal()
+
 
 
 
