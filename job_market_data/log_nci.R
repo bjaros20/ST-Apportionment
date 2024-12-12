@@ -324,6 +324,8 @@ for (state_name in names(result_list_long_run)) {
       plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
       axis.line = element_line(linewidth = 0.5, colour = "black")
     )
+  
+  plot(plot)
   # Save each plot as an image
   ggsave(filename = paste0(state_name, "_sDiD_real_log_nci_long_run.png"), plot = plot, width = 6.5, height = 3.75)  
   
@@ -517,29 +519,32 @@ for (state_name in names(result_list_long_run)) {
     NA
   }
   
+# removed the save results in dataframe step because I no longer need this step.
+  #Babur showed how it was unnecessary with Percentage change
+  
   # Save the results to the dataframe
-  sDiD_real_log_nci_list_CI_long_run <- rbind(
-    sDiD_real_log_nci_list_CI_long_run,
-    data.frame(
-      State = state_name,
-      Effective_Year = current_year,
-      Point_Estimate = as.numeric(current_tau_hat),
-      CI_Lower = as.numeric(current_tau_hat) - 1.96 * se,
-      CI_Upper = as.numeric(current_tau_hat) + 1.96 * se,
-      T_Statistic = t_statistic,
-      P_Value = p_value_two_tail,
-      Controls = controls,      
-      Periods = periods,        
-      Dimensions = dimensions,
-      Treatment_Obs = treatment_stats$Number_of_Observations,
-      Treatment_Mean = treatment_stats$Mean,
-      Treatment_SD = treatment_stats$Standard_Deviation,
-      Control_Obs = control_stats$Number_of_Observations,
-      Control_Mean = control_stats$Mean,
-      Control_SD = control_stats$Standard_Deviation,
-      stringsAsFactors = FALSE
-    )
-  )
+#  sDiD_real_log_nci_list_CI_long_run <- rbind(
+#    sDiD_real_log_nci_list_CI_long_run,
+#    data.frame(
+#      State = state_name,
+#      Effective_Year = current_year,
+#      Point_Estimate = as.numeric(current_tau_hat),
+#      CI_Lower = as.numeric(current_tau_hat) - 1.96 * se,
+#      CI_Upper = as.numeric(current_tau_hat) + 1.96 * se,
+#      T_Statistic = t_statistic,
+#      P_Value = p_value_two_tail,
+#      Controls = controls,      
+#      Periods = periods,        
+ #     Dimensions = dimensions,
+#      Treatment_Obs = treatment_stats$Number_of_Observations,
+#      Treatment_Mean = treatment_stats$Mean,
+#      Treatment_SD = treatment_stats$Standard_Deviation,
+#      Control_Obs = control_stats$Number_of_Observations,
+#      Control_Mean = control_stats$Mean,
+#      Control_SD = control_stats$Standard_Deviation,
+#      stringsAsFactors = FALSE
+#    )
+#  )
   
   # Print the point estimate, confidence interval, t-statistic, and p-value
   cat(sprintf('State: %s\n', state_name))
