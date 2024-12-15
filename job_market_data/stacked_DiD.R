@@ -121,6 +121,7 @@ print(na_summary)
 
 write.csv(stacked_df,"stacked__nci_DiD.csv",row.names=FALSE)
 
+stacked_df  <- read.csv("stacked__nci_DiD.csv")
 
 # Part II- use Fixest to estimate Stacked_df
 
@@ -191,12 +192,12 @@ ggplot(plot_data, aes(x = rel_year_did, y = estimate)) +
   geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2) +
   geom_hline(yintercept = 0, linetype = "dashed") +
   labs(
-    title = "Stacked Difference-in-Differences Plot of SSFA",
+    title = "Two-Way Fixed-Effects Plot of SSFA",
     x = "Event Time",
     y = "Estimated Effect on Log(Corporate Income)"
   ) +
   scale_x_continuous(breaks = -4:4) +  # Ensure all event years from -4 to 4 appear on x-axis
-  theme_minimal()
+  theme_stata()
 
 
 
