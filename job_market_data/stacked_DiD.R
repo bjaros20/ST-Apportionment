@@ -142,6 +142,11 @@ library(plm)
 # Convert data to pdata.frame
 stacked_df2 <- pdata.frame(stacked_df, index = c("event_id", "State_Acronym", "year"))
 
+#warning came up about duplicates
+table(index(stacked_df), useNA = "ifany")
+duplicated_rows <- stacked_df[duplicated(stacked_df[, c("event_id", "State_Acronym", "time")]), ]
+print(duplicated_rows)
+
 # Run model without interaction in plm
 model_plm <- plm(
   real_log_nci ~ treated + i(rel_year_did, ref = -1),  # No interaction term
@@ -151,6 +156,9 @@ model_plm <- plm(
 )
 
 summary(model_plm)
+
+duplicates <- stacked_df2[duplicated(stacked_df2[, c("event_id", "rel_year_did")]), ]
+print(duplicates)
 
 
 #Coefficients:
