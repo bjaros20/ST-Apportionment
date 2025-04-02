@@ -19,19 +19,55 @@ data <- read.csv("real_log_nci.csv")
 
 
 
+#Estimate Simple TWFE with GA and WI switchers.
+data_2006_sim <- data %>%
+  filter(year_effective %in% c(2006, 2015, 2016, 2017, 2018),
+         year >= 1990, year <= 2014) %>%
+  mutate(
+    PostTreatment = ifelse(State_Acronym %in% c("GA", "WI") & year >= 2006, 1, 0)
+  )
+
+twfe_lm <- lm(logRealCitRev ~ PostTreatment + factor(State_Acronym) + factor(year), data = data_2006_sim)
+summary(twfe_lm)
+
+
+
 # --- Filter for 2006 and late switchers (GA, WI), from 1990 to 2014
 data_2006 <- data %>%
   filter(year_effective %in% c(2006, 2015, 2016, 2017, 2018),
          year >= 1990, year <= 2014) %>%
   mutate(
+    PostTreatment = ifelse(State_Acronym %in% c("GA", "WI") & year >= 2006, 1, 0)
+  )
+
+model_twfe_2006 <- feols(logRealCitRev ~ PostTreatment | State_Acronym + year, data = data_2006)
+summary(model_twfe_2006)
+
+#PostTreatment -0.197228   0.093319 -2.11347 0.060686 .  
+#same result for both regressions.
+
+
+
+
+
+# Simple DiD
+data_did_2006 <- data %>%
+  filter(year_effective %in% c(2006, 2015, 2016, 2017, 2018),
+         year >= 1990, year <= 2014) %>%
+  mutate(
     Treated = ifelse(year_effective == 2006, 1, 0),
-    Post = ifelse(year >= year_effective, 1, 0),
+    Post = ifelse(year >= 2006, 1, 0),
     DiD = Treated * Post
   )
 
-# --- TWFE and Simple DiD
-model_twfe_2006 <- feols(logRealCitRev ~ (Post*Treated) | State_Acronym + year, data = data_2006)
-model_did_2006  <- feols(logRealCitRev ~ Treated + Post + DiD, data = data_2006)
+model_did_2006 <- lm(logRealCitRev ~ Treated + Post + DiD, data = data_did_2006)
+summary(model_did_2006)
+
+
+# Think you have accurately estimated TWFE-no cluser, TWFE-state cluser, Simple DiD for logRealCitRev
+# will need to return to this later. Estimates saved in chat. Going to Chesapeake
+
+
 
 
 # --- Filter for 2007 and late switchers (SC, PA, MN, ME, IN, AZ), from 1990 to 2014
