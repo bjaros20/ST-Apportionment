@@ -38,14 +38,14 @@ get_state_index <- function(states) {
 }
 
 # Filter and calculate yearly average for each group, keeping state acronyms
-avg_2006_07 <- data %>%
-  filter(year_effective %in% c(2006, 2007)) %>%
+avg_2007 <- data %>%
+  filter(year_effective %in% c(2007)) %>%
   group_by(year) %>%
   summarise(
     avg_logRealCitRev = mean(logRealCitRev, na.rm = TRUE),
     state_acronyms = get_state_index(State_Acronym)
   ) %>%
-  mutate(group = "2006-2007")
+  mutate(group = "2007")
 
 avg_2015_18 <- data %>%
   filter(year_effective >= 2015 & year_effective <= 2018) %>%
@@ -63,10 +63,10 @@ avg_NA <- data %>%
     avg_logRealCitRev = mean(logRealCitRev, na.rm = TRUE),
     state_acronyms = get_state_index(State_Acronym)
   ) %>%
-  mutate(group = "No Year Effective (NA)")
+  mutate(group = "No Switch")
 
 # Combine all groups into one dataframe
-avg_logRealCitRev_df <- bind_rows(avg_2006_07, avg_2015_18, avg_NA)
+avg_logRealCitRev_df <- bind_rows(avg_2007, avg_2015_18, avg_NA)
 
 # Print to verify the structure
 print(avg_logRealCitRev_df)
@@ -90,7 +90,7 @@ logRealCitRev_plot <- ggplot(avg_logRealCitRev_df, aes(x = year, y = avg_logReal
   geom_vline(xintercept = 2016, linetype = "dashed", color = "black", linewidth = 1) +
   labs(
     x = "Year",
-    y = "Ln(Corporate Income Tax Revenue)",
+    y = "Ln(CI Tax Revenue)",
     title = "Trends in Log Real Corporate Income Tax Revenue"
   ) +
   scale_color_manual(values = c("blue", "red", "green"), labels = group_labels) +
@@ -119,18 +119,20 @@ print(logRealCitRev_plot)
 ggsave(filename = "logRealCitRev_trends.png", plot = logRealCitRev_plot, width = 7.8, height = 3.75)
 
 
+ggsave("logRealCitRev_trends.png", plot = logRealCitRev_plot,
+       width = 3.067, height = 1.657, dpi = 300)
 
 #PART II: Now plot log_RNCTR
 
 # Filter and calculate yearly average for each group, keeping state acronyms
-avg_2006_07 <- data %>%
-  filter(year_effective %in% c(2006, 2007)) %>%
+avg_2007 <- data %>%
+  filter(year_effective %in% c(2007)) %>%
   group_by(year) %>%
   summarise(
     avg_log_RNCTR = mean(log_RNCTR, na.rm = TRUE),
     state_acronyms = get_state_index(State_Acronym)
   ) %>%
-  mutate(group = "2006-2007")
+  mutate(group = "2007")
 
 avg_2015_18 <- data %>%
   filter(year_effective >= 2015 & year_effective <= 2018) %>%
@@ -148,10 +150,10 @@ avg_NA <- data %>%
     avg_log_RNCTR = mean(log_RNCTR, na.rm = TRUE),
     state_acronyms = get_state_index(State_Acronym)
   ) %>%
-  mutate(group = "No Year Effective (NA)")
+  mutate(group = "No Switch")
 
 # Combine all groups into one dataframe
-avg_log_RNCTR_df <- bind_rows(avg_2006_07, avg_2015_18, avg_NA)
+avg_log_RNCTR_df <- bind_rows(avg_2007, avg_2015_18, avg_NA)
 
 # Print to verify the structure
 print(avg_log_RNCTR_df)
@@ -175,7 +177,7 @@ log_RNCTR_plot <- ggplot(avg_log_RNCTR_df, aes(x = year, y = avg_log_RNCTR, colo
   geom_vline(xintercept = 2016, linetype = "dashed", color = "black", linewidth = 1) +
   labs(
     x = "Year",
-    y = "Ln(Non-Corporate Income Tax Revenue)",
+    y = "Ln(Non-CI Tax Revenue)",
     title = "Trends in Log Non-Corporate Income Tax Revenue"
   ) +
   scale_color_manual(values = c("blue", "red", "green"), labels = group_labels) +
@@ -206,14 +208,14 @@ ggsave(filename = "log_RNCTR_trends.png", plot = log_RNCTR_plot, width = 7.8, he
 #PART III: Now plot real_log_nci
 
 # Filter and calculate yearly average for each group, keeping state acronyms
-avg_2006_07 <- data %>%
-  filter(year_effective %in% c(2006, 2007)) %>%
+avg_2007 <- data %>%
+  filter(year_effective %in% c(2007)) %>%
   group_by(year) %>%
   summarise(
     avg_real_log_nci = mean(real_log_nci, na.rm = TRUE),
     state_acronyms = get_state_index(State_Acronym)
   ) %>%
-  mutate(group = "2006-2007")
+  mutate(group = "2007")
 
 avg_2015_18 <- data %>%
   filter(year_effective >= 2015 & year_effective <= 2018) %>%
@@ -233,12 +235,12 @@ avg_NA <- data %>%
     avg_real_log_nci = mean(real_log_nci, na.rm = TRUE),
     state_acronyms = get_state_index(State_Acronym)
   ) %>%
-  mutate(group = "No Year Effective (NA)")
+  mutate(group = "No Switch")
 
 
 
 # Combine all groups into one dataframe
-avg_real_log_nci_df <- bind_rows(avg_2006_07, avg_2015_18, avg_NA)
+avg_real_log_nci_df <- bind_rows(avg_2007, avg_2015_18, avg_NA)
 
 # Print to verify the structure
 print(avg_real_log_nci_df)
@@ -294,14 +296,14 @@ ggsave(filename = "real_log_nci_trends.png", plot = real_log_nci_plot, width = 7
 
 ###Part IV RATES
 # Filter and calculate yearly average for each group, keeping state acronyms
-avg_2006_07 <- data %>%
-  filter(year_effective %in% c(2006, 2007)) %>%
+avg_2007 <- data %>%
+  filter(year_effective %in% c(2007)) %>%
   group_by(year) %>%
   summarise(
     avg_rates = mean(rates, na.rm = TRUE),
     state_acronyms = get_state_index(State_Acronym)
   ) %>%
-  mutate(group = "2006-2007")
+  mutate(group = "2007")
 
 avg_2015_18 <- data %>%
   filter(year_effective >= 2015 & year_effective <= 2018) %>%
@@ -321,12 +323,12 @@ avg_NA <- data %>%
     avg_rates = mean(rates, na.rm = TRUE),
     state_acronyms = get_state_index(State_Acronym)
   ) %>%
-  mutate(group = "No Year Effective (NA)")
+  mutate(group = "No Switch")
 
 
 
 # Combine all groups into one dataframe
-avg_rates_df <- bind_rows(avg_2006_07, avg_2015_18, avg_NA)
+avg_rates_df <- bind_rows(avg_2007, avg_2015_18, avg_NA)
 
 # Print to verify the structure
 print(avg_rates_df)
