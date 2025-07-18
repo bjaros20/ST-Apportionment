@@ -141,7 +141,7 @@ ax_alaska.set_xlim(-180, -125)
 ax_alaska.set_ylim(52, 72)
 ax_alaska.set_xticks([])
 ax_alaska.set_yticks([])
-ax_alaska.set_title('Alaska', fontsize=10)
+ax_alaska.set_title('Alaska', fontsize=14)
 
 # CHANGE 5: Hawaii inset - make smaller
 ax_hawaii = inset_axes(ax, width="15%", height="15%", loc='lower left',
@@ -152,7 +152,7 @@ ax_hawaii.set_xlim(-162, -154)
 ax_hawaii.set_ylim(18, 23)
 ax_hawaii.set_xticks([])
 ax_hawaii.set_yticks([])
-ax_hawaii.set_title('Hawaii', fontsize=10)
+ax_hawaii.set_title('Hawaii', fontsize=14)
 
 # Add labels for larger states (excluding callout states)
 for idx, row in states.iterrows():
@@ -170,7 +170,7 @@ for idx, row in states.iterrows():
             # Use black text for white states
             text_color = 'black' if state_name in ['Iowa', 'Nebraska', 'Michigan', 'Illinois'] else 'black'
             ax.text(centroid.x, centroid.y, str(ssf_data[state_name]['year']), 
-                   ha='center', va='center', fontsize=10, fontweight='bold', color=text_color)
+                   ha='center', va='center', fontsize=14, fontweight='bold', color=text_color)
             
 # Use white text for 1970s-1990s states (which are now white)
 if width > 2 and height > 2 or state_name == 'Tennessee':
@@ -180,7 +180,7 @@ if width > 2 and height > 2 or state_name == 'Tennessee':
     else:
         text_color = 'black'
     ax.text(centroid.x, centroid.y, str(ssf_data[state_name]['year']), 
-           ha='center', va='center', fontsize=10, fontweight='bold', color=text_color)
+           ha='center', va='center', fontsize=14, fontweight='bold', color=text_color)
 
 
 # Add callout boxes for northeastern states
@@ -216,7 +216,7 @@ for state, (box_x, box_y) in callout_positions.items():
             
             # Add text
             ax.text(box_x, box_y, f"{state_abbr[state]} {ssf_data[state]['year']}", 
-                   ha='center', va='center', fontsize=9)
+                   ha='center', va='center', fontsize=14)
 
 # Set map extent (continental US + space for callouts)
 ax.set_xlim(-130, -60)
@@ -232,7 +232,7 @@ ax.spines['left'].set_visible(False)
 
 # Add title at the very top of the figure
 fig.text(0.5, 0.95, 'Single Sales Factor Apportionment Adoption in the United States (1978-2025)', 
-         ha='center', va='center', fontsize=18, fontweight='bold')
+         ha='center', va='center', fontsize=20, fontweight='bold')
 
 # CHANGE 3: Remove subtitle - commented out
 # ax.text(0.5, 0.95, '36 states have adopted single sales factor apportionment for corporate income tax (1978-2025)',
@@ -263,10 +263,10 @@ plt.tight_layout()
 plt.subplots_adjust(top=0.90, bottom=0.15)  # Make room at top for title
 
 # Save the map in multiple formats
-plt.savefig('ssf_adoption_map4.png', dpi=300, bbox_inches='tight', facecolor='white')
+plt.savefig('ssf_adoption_map5.png', dpi=300, bbox_inches='tight', facecolor='white')
 
 print("Map saved as:")
-print("- ssf_adoption_map4.png (for presentations)")
+print("- ssf_adoption_map5.png (for presentations)")
 
 # Display the map
 plt.show()
