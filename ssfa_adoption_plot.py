@@ -95,7 +95,6 @@ callout_states = ['Maine', 'New Hampshire', 'Vermont', 'Massachusetts',
 # Load US states shapefile
 # Note: You'll need to download a US states shapefile. You can get one from:
 # https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html
-# or use geopandas built-in data
 
 try:
     # Try to load from a local shapefile first
