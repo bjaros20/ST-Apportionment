@@ -392,3 +392,5 @@ summary(logistic_model_early)
 exp(coef(logistic_model_early))
 
 write.csv(Sev6,"Sev_early_switch.csv")
+
+sev <- read.csv("Sev_early_switch.csv")
