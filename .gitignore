@@ -1,0 +1,21 @@
+# R session/history files (ignore new ones)
+.Rhistory
+.RData
+.Ruserdata
+.Rapp.history
+
+# RStudio project files
+.Rproj.user/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# renv caches
+renv/library/
+renv/staging/
+
+# Preserve tracked copies in hist_files/
+!hist_files/*
+
+
