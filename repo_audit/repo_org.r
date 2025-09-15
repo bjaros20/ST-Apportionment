@@ -41,3 +41,4 @@ rows <- lapply(files, function(f) {
 inv <- do.call(rbind, rows)
 write.csv(inv, "repo_audit/inventory.csv", row.names = FALSE)
 message("Wrote repo_audit/inventory.csv")
+
