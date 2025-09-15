@@ -6,7 +6,7 @@ This repository contains replication materials for
 
 ## Structure
 
-- `analysis/` – Organized by paper sections (e.g., `2.4_fixed_factors_logit`, `7.3_synthetic_did`).
+- `analysis/` – Organized by paper sections.
 - `data/raw/` – Original state-level datasets.
 - `data/filtered/` – Cleaned datasets prepared for analysis.
 - `scripts/` – General scripts not yet tied to a specific section.
@@ -17,3 +17,7 @@ This repository contains replication materials for
 
 A detailed mapping from data → scripts → results is in  
 [`DATA_INVENTORY.md`](DATA_INVENTORY.md).
+
+## License
+
+This project is licensed under the [MIT License](./LICENSE).
