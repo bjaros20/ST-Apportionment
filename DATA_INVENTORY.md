@@ -6,11 +6,18 @@ This document links each section of the paper to the underlying data files and s
 
 ## Section 2.4 – Fixed Factors and Severance Tax
 - **Data files:**
-  - `data/raw/severance_tax.csv` (state severance tax collections, FRED)
+  - `analysis/2.4_fixed_factors_logit/output/Sev_early_switch.csv` – cleaned dataset for regression
+  - Generated from raw inputs:
+    - `data/raw/filled_data_jmp.csv`
+    - `data/raw/Non_CIT_states_FRED_OH.csv`
+    - `data/raw/ssfa_data_jmp.xlsx`
+    - `data/raw/clean_rates_1976-2022.csv`
+    - `data/raw/rates_jmp.csv`
+    - `data/raw/elasticity_rates_jmp.csv` (alternate version of rates)
 - **Scripts:**
   - `analysis/2.4_fixed_factors_logit/scripts/Severance2WFE.R`
 - **Results in paper:**
-  - Table 1 (logistic regression on severance tax and SSFA adoption)
+  - Table 1 – Logistic regression (odds ratios) showing higher severance tax revenues reduce probability of SSFA adoption
 
 ---
 
