@@ -44,13 +44,14 @@ This document links each section of the paper to the underlying data files and s
 
 ## Section 7.1 – Year-to-Year Changes
 - **Data files:**
-  - `data/raw/corp_income_tax_collections.csv`  
-  - `data/raw/corp_tax_rates.csv`
+  - `analysis/7.1_yearly_changes/data/real_log_nci.csv` – base dataset (real, log taxable corporate income by state/year)
 - **Scripts:**
-  - `analysis/7.1_yearly_changes/scripts/yearly_diff.R`
+  - `analysis/7.1_yearly_changes/scripts/desc_log_nci.R`
+- **Outputs:**
+  - `analysis/7.1_yearly_changes/output/sr_descriptive_log_nci.csv` – computed year(-1), year(0), year(+1) logs and differences
 - **Results in paper:**
-  - Table 7 (Yearly Differences)
-  - Figures 1–3 (group trends)
+  - Table 7 – Yearly differences in taxable corporate income (real, log scale)
+  - Figures 1–3 – descriptive plots by adoption timing
 
 ---
 
