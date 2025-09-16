@@ -29,7 +29,6 @@ This document links each section of the paper to the underlying data files and s
   - `analysis/2.5_employment_probit/data/CurrentEmploymentStatistics_National.csv` – CES national employment  
   - `analysis/2.5_employment_probit/data/CurrentEmploymentStatistics_States.csv` – CES state-level employment  
   - `analysis/2.5_employment_probit/data/LocalAreaUnemploymentStatistics_States.csv` – LAUS unemployment rates  
-  - `analysis/2.5_employment_probit/data/NBER_businesscyclechronology.csv` – NBER recessions reference  
   - `analysis/2.5_employment_probit/data/StatewideManufacturingEmployment_States.csv` – BLS manufacturing employment  
 
 - **Scripts:**
@@ -39,7 +38,6 @@ This document links each section of the paper to the underlying data files and s
   - Table 2 – Logit hazard model of SSFA adoption  
   - Table 3 – Probit hazard model of SSFA adoption  
 
----
 
 
 ---
