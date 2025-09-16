@@ -22,15 +22,25 @@ This document links each section of the paper to the underlying data files and s
 ---
 
 ## Section 2.5 – Employment and Manufacturing
+
 - **Data files:**
-  - `data/raw/CES_employment.csv`
-  - `data/raw/manufacturing_employment.csv`
-  - `data/raw/LAUS_unemployment.csv`
+  - `analysis/2.5_employment_probit/data/Severance_Cap_mutate.csv` – base panel of severance tax and adoption timing  
+  - `analysis/2.5_employment_probit/data/BEA_GDPGrowth.csv` – BEA GDP growth controls  
+  - `analysis/2.5_employment_probit/data/CurrentEmploymentStatistics_National.csv` – CES national employment  
+  - `analysis/2.5_employment_probit/data/CurrentEmploymentStatistics_States.csv` – CES state-level employment  
+  - `analysis/2.5_employment_probit/data/LocalAreaUnemploymentStatistics_States.csv` – LAUS unemployment rates  
+  - `analysis/2.5_employment_probit/data/NBER_businesscyclechronology.csv` – NBER recessions reference  
+  - `analysis/2.5_employment_probit/data/StatewideManufacturingEmployment_States.csv` – BLS manufacturing employment  
+
 - **Scripts:**
-  - `analysis/2.5_employment_probit/scripts/employment_hazard_logit.R`
-  - `analysis/2.5_employment_probit/scripts/employment_hazard_probit.R`
+  - `analysis/2.5_employment_probit/scripts/SSFA_Why_Switch_Script.R` – builds hazard panel, cleans employment/manufacturing/unemployment datasets, runs logit and probit models
+
 - **Results in paper:**
-  - Tables 2 and 3 (hazard models, logit and probit)
+  - Table 2 – Logit hazard model of SSFA adoption  
+  - Table 3 – Probit hazard model of SSFA adoption  
+
+---
+
 
 ---
 
