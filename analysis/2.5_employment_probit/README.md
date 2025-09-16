@@ -8,7 +8,6 @@ This folder contains the data and code used to estimate the hazard models in Sec
 - `data/CurrentEmploymentStatistics_National.csv` – BLS CES national employment.
 - `data/CurrentEmploymentStatistics_States.csv` – BLS CES state-level employment.
 - `data/LocalAreaUnemploymentStatistics_States.csv` – BLS LAUS state unemployment rates.
-- `data/NBER_businesscyclechronology.csv` – NBER recession chronology (loaded, not directly used).
 - `data/StatewideManufacturingEmployment_States.csv` – BLS CES state-level manufacturing employment.
 
 ## Script
