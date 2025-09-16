@@ -57,16 +57,16 @@ This document links each section of the paper to the underlying data files and s
 
 ## Section 7.2 – Truncated Sample
 - **Data files:**
-  - Same as 7.1 (corporate income and tax rates), restricted to 2007/2015–18 cohorts
-- **Scripts:**
-  - `analysis/7.2_truncated_sample/scripts/TwoWayFEReg.R`
-  - `analysis/7.2_truncated_sample/scripts/Direct_Switch_First7.R`
-  - `analysis/7.2_truncated_sample/scripts/SimplePlots_DirectSwitch.R`
-- **Results in paper:**
-  - Tables 8–10 (TWFE, DID, Event-study)
-  - Figure 4 (event study plot)
-  - Figure 8 (treated vs. control)
+  - `analysis/7.2_truncated_sample/data/real_log_nci.csv`  
+    State-level log non-corporate income dataset, used for TWFE and DiD analyses.  
 
+- **Scripts:**
+  - `analysis/7.2_truncated_sample/scripts/TWFE_DiD_EventStudy_2007.R`  
+    Estimates TWFE, simple DiD, and event-study style DiD for the 2007 adoption cohort.  
+
+- **Results in paper:**
+  - Tables 8–10 (TWFE, DiD, and Event-study estimates).  
+  - Figures 4 and 8 (event-study plots for truncated sample).  
 ---
 
 ## Section 7.3 – Synthetic DID
