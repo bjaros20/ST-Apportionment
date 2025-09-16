@@ -7,13 +7,13 @@ This document links each section of the paper to the underlying data files and s
 ## Section 2.4 – Fixed Factors and Severance Tax
 - **Data files:**
   - `analysis/2.4_fixed_factors_logit/output/Sev_early_switch.csv` – cleaned dataset for regression
-  - Generated from raw inputs:
-    - `data/raw/filled_data_jmp.csv`
-    - `data/raw/Non_CIT_states_FRED_OH.csv`
-    - `data/raw/ssfa_data_jmp.xlsx`
-    - `data/raw/clean_rates_1976-2022.csv`
-    - `data/raw/rates_jmp.csv`
-    - `data/raw/elasticity_rates_jmp.csv` (alternate version of rates)
+  - Generated from raw inputs (stored locally in this section):
+    - `analysis/2.4_fixed_factors_logit/data/filled_data_jmp.csv`
+    - `analysis/2.4_fixed_factors_logit/data/Non_CIT_states_FRED_OH.csv`
+    - `analysis/2.4_fixed_factors_logit/data/ssfa_data_jmp.xlsx`
+    - `analysis/2.4_fixed_factors_logit/data/clean_rates_1976-2022.csv`
+    - `analysis/2.4_fixed_factors_logit/data/rates_jmp.csv`
+    - `analysis/2.4_fixed_factors_logit/data/elasticity_rates_jmp.csv`
 - **Scripts:**
   - `analysis/2.4_fixed_factors_logit/scripts/Severance2WFE.R`
 - **Results in paper:**
