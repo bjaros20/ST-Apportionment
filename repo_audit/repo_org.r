@@ -372,3 +372,255 @@ file.copy("scripts/job_market/per_chan_NCI.R",
           "analysis/7.4_non_corporate_income/scripts/per_chan_NCI.R")
 
 
+dir.create("hist_files", showWarnings = FALSE)
+
+file.rename("CrossPartial/.Rhistory", 
+            "hist_files/CrossPartial_Rhistory.Rhistory")
+
+file.rename("Direct_Switch_DiD/.Rhistory", 
+            "hist_files/DirectSwitchDiD_Rhistory.Rhistory")
+
+
+# checking script and data for section 2.4
+
+file.edit("analysis/2.4_fixed_factors_logit/scripts/Severance2WFE.R")
+
+candidates <- c(
+  "filled_data_jmp.csv",
+  "Non_CIT_states_FRED_OH.csv",
+  "ssfa_data_jmp.xlsx",
+  "clean_rates_1976-2022.csv",
+  "rates_jmp.csv"
+)
+
+for (f in candidates) {
+  cat("Searching for:", f, "\n")
+  print(list.files("data/raw", pattern = f, recursive = TRUE, full.names = TRUE))
+}
+
+list.files("analysis/2.4_fixed_factors_logit", recursive = TRUE, full.names = TRUE)
+
+#copy raw output
+# Make sure subfolders exist
+dir.create("analysis/2.4_fixed_factors_logit/data", recursive = TRUE, showWarnings = FALSE)
+dir.create("analysis/2.4_fixed_factors_logit/output", recursive = TRUE, showWarnings = FALSE)
+
+# List of raw input files with confirmed locations
+raw_inputs <- c(
+  "data/raw/filled_data_jmp.csv",
+  "data/raw/Non_CIT_states_FRED_OH.csv",
+  "data/raw/ssfa_data_jmp.xlsx",
+  "data/raw/clean_rates_1976-2022.csv",
+  "data/raw/rates_jmp.csv",
+  "data/raw/elasticity_rates_jmp.csv"
+)
+
+# Copy each raw input into analysis/2.4/data
+for (f in raw_inputs) {
+  target <- file.path("analysis/2.4_fixed_factors_logit/data", basename(f))
+  if (file.exists(f) && !file.exists(target)) {
+    file.copy(f, target)
+    message("✅ Copied: ", f, " → ", target)
+  } else if (!file.exists(f)) {
+    message("⚠️ Source missing: ", f)
+  } else {
+    message("ℹ️ Already exists: ", target)
+  }
+}
+
+# Copy cleaned dataset if available
+if (file.exists("Sev_early_switch.csv")) {
+  target <- "analysis/2.4_fixed_factors_logit/output/Sev_early_switch.csv"
+  if (!file.exists(target)) {
+    file.copy("Sev_early_switch.csv", target)
+    message("✅ Copied cleaned dataset: Sev_early_switch.csv → ", target)
+  } else {
+    message("ℹ️ Cleaned dataset already in output folder")
+  }
+} else {
+  message("⚠️ Cleaned dataset Sev_early_switch.csv not found in root")
+}
+
+file.copy("data/raw/Sev_early_switch.csv",
+          "analysis/2.4_fixed_factors_logit/output/Sev_early_switch.csv")
+
+
+
+#section 2.5 repo organization
+# Make sure Section 2.5 folder structure exists
+dir.create("analysis/2.5_employment_probit/data", recursive = TRUE, showWarnings = FALSE)
+dir.create("analysis/2.5_employment_probit/output", recursive = TRUE, showWarnings = FALSE)
+dir.create("analysis/2.5_employment_probit/scripts", recursive = TRUE, showWarnings = FALSE)
+
+# Copy Severance_Cap_mutate.csv from your main repo
+sev_file <- "data/raw/job_market/Severance_Cap_mutate.csv"
+if (file.exists(sev_file)) {
+  file.copy(sev_file,
+            "analysis/2.5_employment_probit/data/Severance_Cap_mutate.csv",
+            overwrite = FALSE)
+} else {
+  message("⚠️ Could not find: ", sev_file)
+}
+
+list.files(".", pattern = "Severance_Cap_mutate.csv", recursive = TRUE, full.names = TRUE)
+
+file.copy("data/raw/Severance_Cap_mutate.csv",
+          "analysis/2.5_employment_probit/data/Severance_Cap_mutate.csv",
+          overwrite = FALSE)
+
+
+
+# Path to your external 'projects' folder
+projects_path <- "/Users/ben/Documents/GitHub/projects"
+
+# Files to copy from projects
+project_files <- c(
+  "BEA_GDPGrowth.csv",
+  "CurrentEmploymentStatistics_National.csv",
+  "CurrentEmploymentStatistics_States.csv",
+  "LocalAreaUnemploymentStatistics_States.csv",
+  "NBER_businesscyclechronology.csv",
+  "Statewide_ManufacturingEmployment_States.csv"
+)
+
+for (f in project_files) {
+  src <- file.path(projects_path, f)
+  dest <- file.path("analysis/2.5_employment_probit/data", f)
+  if (file.exists(src)) {
+    file.copy(src, dest, overwrite = FALSE)
+    message("✅ Copied: ", f)
+  } else {
+    message("⚠️ Missing: ", src)
+  }
+}
+
+list.files("/Users/ben/Documents/GitHub/projects", 
+           pattern = "\\.csv$", 
+           recursive = TRUE, 
+           full.names = TRUE)
+
+
+# Path to your Why States Switch repo
+why_switch_path <- "/Users/benjaros/Documents/GitHub/projects/SSFA_Why_States_Switch/SSFA_switch_data"
+
+# Files to copy
+why_switch_files <- c(
+  "BEA_GDPGrowth.csv",
+  "CurrentEmploymentStatistics_National.csv",
+  "CurrentEmploymentStatistics_States.csv",
+  "LocalAreaUnemploymentStatistics_States.csv",
+  "NBER_businesscyclechronology.csv",
+  "StatewideManufacturingEmployment_States.csv"
+)
+
+for (f in why_switch_files) {
+  src <- file.path(why_switch_path, f)
+  dest <- file.path("analysis/2.5_employment_probit/data", f)
+  if (file.exists(src)) {
+    file.copy(src, dest, overwrite = FALSE)
+    message("✅ Copied: ", f)
+  } else {
+    message("⚠️ Missing: ", src)
+  }
+}
+
+# move script
+# Define source and destination
+src_script <- "/Users/benjaros/Documents/GitHub/projects/SSFA_Why_States_Switch/SSFA_Why_Switch_Script.R"
+dest_script <- "analysis/2.5_employment_probit/scripts/SSFA_Why_Switch_Script.R"
+
+# Copy if it exists
+if (file.exists(src_script)) {
+  file.copy(src_script, dest_script, overwrite = FALSE)
+  message("✅ Copied: ", src_script, " → ", dest_script)
+} else {
+  message("⚠️ Could not find script at: ", src_script)
+}
+
+
+# Expected files for Section 2.5
+expected_files <- c(
+  "Severance_Cap_mutate.csv",
+  "BEA_GDPGrowth.csv",
+  "CurrentEmploymentStatistics_National.csv",
+  "CurrentEmploymentStatistics_States.csv",
+  "LocalAreaUnemploymentStatistics_States.csv",
+  "StatewideManufacturingEmployment_States.csv"
+)
+
+# Check what’s in the 2.5 data folder
+actual_files <- list.files("analysis/2.5_employment_probit/data", full.names = FALSE)
+
+# Report missing and extra files
+missing <- setdiff(expected_files, actual_files)
+extra   <- setdiff(actual_files, expected_files)
+
+cat("✅ Present files:\n", paste(intersect(expected_files, actual_files), collapse = "\n"), "\n\n")
+if (length(missing) > 0) cat("⚠️ Missing files:\n", paste(missing, collapse = "\n"), "\n\n")
+if (length(extra) > 0) cat("ℹ️ Extra files in folder:\n", paste(extra, collapse = "\n"), "\n")
+
+
+#organization for Section 7.1
+dir.create("analysis/7.1_yearly_changes/data", recursive = TRUE, showWarnings = FALSE)
+dir.create("analysis/7.1_yearly_changes/output", recursive = TRUE, showWarnings = FALSE)
+dir.create("analysis/7.1_yearly_changes/scripts", recursive = TRUE, showWarnings = FALSE)
+
+
+# Copy raw data
+file.copy("data/raw/job_market/real_log_nci.csv",
+          "analysis/7.1_yearly_changes/data/real_log_nci.csv")
+list.files(".", pattern = "real_log_nci.csv", recursive = TRUE, full.names = TRUE)
+
+
+# Copy raw data (real taxable corporate income, log)
+file.copy("data/raw/real_log_nci.csv",
+          "analysis/7.1_yearly_changes/data/real_log_nci.csv")
+
+
+# Copy output (if already created by running script)
+if (file.exists("data/raw/job_market/sr_descriptive_log_nci.csv")) {
+  file.copy("data/raw/job_market/sr_descriptive_log_nci.csv",
+            "analysis/7.1_yearly_changes/output/sr_descriptive_log_nci.csv")
+}
+
+
+# Search for the real_log_nci data file
+list.files(".", pattern = "real_log_nci", recursive = TRUE, full.names = TRUE)
+
+# Search for the desc_log_nci script
+list.files(".", pattern = "desc_log_nci.R", recursive = TRUE, full.names = TRUE)
+
+}
+
+
+# onto 7.2
+# Move SimplePlots_DirectSwitch.R back to general scripts folder
+file.rename("analysis/7.2_truncated_sample/scripts/SimplePlots_DirectSwitch.R",
+            "scripts/SimplePlots_DirectSwitch.R")
+
+# Move TwoWayFEReg.R back to general scripts folder
+file.rename("analysis/7.2_truncated_sample/scripts/TwoWayFEReg.R",
+            "scripts/TwoWayFEReg.R")
+
+
+list.files("analysis/7.2_truncated_sample/scripts")
+list.files("scripts", pattern = "DirectSwitch|TwoWayFEReg")
+
+
+# Ensure folder structure for Section 7.2
+dir.create("analysis/7.2_truncated_sample/data", recursive = TRUE, showWarnings = FALSE)
+dir.create("analysis/7.2_truncated_sample/output", recursive = TRUE, showWarnings = FALSE)
+
+# Copy the raw dataset (real taxable corporate income, log-transformed)
+file.copy("data/raw/real_log_nci.csv",
+          "analysis/7.2_truncated_sample/data/real_log_nci.csv",
+          overwrite = FALSE)
+
+# Move/copy the main script into Section 7.2 scripts
+file.copy("analysis/7.2_truncated_sample/scripts/disseration_TWFE_4_4_25.R",
+          "analysis/7.2_truncated_sample/scripts/TWFE_DiD_EventStudy_2007.R",
+          overwrite = FALSE)
+
+message("✅ Section 7.2 setup complete: data and script organized")
+
+
