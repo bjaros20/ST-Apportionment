@@ -4,7 +4,7 @@ This folder replicates the synthetic difference-in-differences (sDiD) analysis o
 
 ## Data
 - `data/real_log_nci.csv`  
-  State-level log of real taxable corporate income (base dataset for all sDiD analyses).
+  State-level log of real taxable corporate income (base dataset for all sDiD analysis).
 
 ## Scripts
 - `scripts/log_nci.R`  
