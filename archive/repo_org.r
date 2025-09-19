@@ -624,3 +624,272 @@ file.copy("analysis/7.2_truncated_sample/scripts/disseration_TWFE_4_4_25.R",
 message("✅ Section 7.2 setup complete: data and script organized")
 
 
+# set up section 7.3
+list.files(".", pattern = "real_log_nci.csv", recursive = TRUE, full.names = TRUE)
+
+#find scripts
+# Search for any R script mentioning 'real_log_nci.csv'
+matches <- system("grep -rn 'real_log_nci.csv' --include=*.R .", intern = TRUE)
+cat(matches, sep = "\n")
+
+
+
+# Ensure folder structure exists
+dir.create("analysis/7.3_synthetic_did/data", recursive = TRUE, showWarnings = FALSE)
+dir.create("analysis/7.3_synthetic_did/scripts", recursive = TRUE, showWarnings = FALSE)
+dir.create("analysis/7.3_synthetic_did/output", recursive = TRUE, showWarnings = FALSE)
+
+# Copy dataset into Section 7.3 data folder
+file.copy("data/raw/real_log_nci.csv",
+          "analysis/7.3_synthetic_did/data/real_log_nci.csv",
+          overwrite = FALSE)
+
+# Copy the main script (rename for clarity)
+file.copy("scripts/job_market/log_nci.R",
+          "analysis/7.3_synthetic_did/scripts/log_nci.R",
+          overwrite = FALSE)
+
+# Create README.md for Section 7.3
+readme_73 <- "# Section 7.3 – Synthetic DID
+
+This folder replicates the synthetic difference-in-differences (sDiD) analysis of SSFA adoption using state-level corporate income data.
+
+## Data
+- `data/real_log_nci.csv`  
+  State-level log of real taxable corporate income (base dataset for all sDiD analyses).
+
+## Scripts
+- `scripts/log_nci.R`  
+  Main script that:
+  - Filters state adoption cohorts sequentially.
+  - Runs synthetic DID (short-run and long-run) using the `synthdid` package.
+  - Produces point estimates, confidence intervals, t-statistics, p-values.
+  - Generates plots for each treated state.
+
+## Output
+- `output/` (to be populated when the script is run)  
+  - `*_sDiD_real_log_nci_short_run.png` – per-state short-run estimates.  
+  - `*_sDiD_real_log_nci_long_run.png` – per-state long-run estimates.  
+
+## Results in Paper
+- Tables 11–13 (Synthetic DID estimates).  
+- Appendix figures: per-state short-run and long-run plots, Tables 17-21.
+"
+
+writeLines(readme_73, "analysis/7.3_synthetic_did/README.md")
+
+
+# --- Section 7.4: Non-Corporate Income ---
+# Create folder structure
+dir.create("analysis/7.4_non_corporate_income/data", recursive = TRUE, showWarnings = FALSE)
+dir.create("analysis/7.4_non_corporate_income/output", recursive = TRUE, showWarnings = FALSE)
+dir.create("analysis/7.4_non_corporate_income/scripts", recursive = TRUE, showWarnings = FALSE)
+
+# Copy raw input (naive_ci.csv)
+if (file.exists("data/raw/naive_ci.csv")) {
+  file.copy("data/raw/naive_ci.csv",
+            "analysis/7.4_non_corporate_income/data/naive_ci.csv",
+            overwrite = FALSE)
+}
+
+list.files(".", pattern = "pe_nonCI_SR_LR.R", recursive = TRUE, full.names = TRUE)
+
+
+
+
+# Copy outputs (if script has been run)
+output_files <- c("real_NCI_cap.csv",
+                  "sDiD_point_estimate_list_NCI_short_run.csv",
+                  "sDiD_point_estimate_list_NCI_long_run.csv")
+
+for (f in output_files) {
+  src <- file.path("data/raw", f)
+  if (!file.exists(src)) src <- f   # fallback if saved in working dir
+  if (file.exists(src)) {
+    file.copy(src,
+              file.path("analysis/7.4_non_corporate_income/output", basename(f)),
+              overwrite = FALSE)
+  }
+}
+
+
+#Create READ.ME for 7.4
+# Create README.md for Section 7.4
+readme_74 <- "# Section 7.4 – Non-Corporate Income
+
+This folder replicates the synthetic difference-in-differences (sDiD) analysis using **non-corporate income (NCI) tax revenue per capita** as the outcome.
+
+## Data
+- `data/real_NCI_cap.csv`  
+  State-level non-corporate income tax revenue per capita.  
+  - Derived from `naive_ci.csv` by subtracting corporate income revenue from total tax revenue, adjusting by CPI, and scaling per capita.
+
+## Scripts
+- `scripts/pe_nonCI_SR_LR.R`  
+  Main script that:
+  - Constructs the non-corporate income per capita dataset.
+  - Runs synthetic DID (short-run and long-run) using the `synthdid` package.
+  - Produces point estimates, confidence intervals, t-statistics, and p-values.
+  - Saves per-state plots of treatment effects.
+
+
+## Results in Paper
+- Tables 22-24 (Synthetic DID estimates for non-corporate tax revenue).  
+- Appendix figures: per-state short-run and long-run plots."
+
+writeLines(readme_74, "analysis/7.4_non_corporate_income/README.md")
+
+
+#final clean up
+# Repo structure search script
+# ----------------------------
+
+# Load needed library
+if (!requireNamespace("fs", quietly = TRUE)) {
+  install.packages("fs")
+}
+library(fs)
+
+# Define the root of your repository (change if needed)
+repo_root <- "."
+
+# List directories and files up to 3 levels deep
+repo_tree <- fs::dir_tree(
+  path = repo_root,
+  recurse = TRUE,
+  max_depth = 3
+)
+
+# Print structure
+cat(repo_tree, sep = "\n")
+
+
+# Repo organization script
+# ------------------------
+
+# Ensure folders exist
+dir.create("data/raw", recursive = TRUE, showWarnings = FALSE)
+dir.create("data/filtered", recursive = TRUE, showWarnings = FALSE)
+dir.create("scripts", recursive = TRUE, showWarnings = FALSE)
+dir.create("archive/misc", recursive = TRUE, showWarnings = FALSE)
+dir.create("output", recursive = TRUE, showWarnings = FALSE)
+
+# --- Moves based on your plan ---
+
+# Move CAEMP25N into data/raw
+if (dir.exists("CAEMP25N")) {
+  file.rename("CAEMP25N", "data/raw/CAEMP25N")
+}
+
+# Move Rates_Of_Change into scripts
+if (dir.exists("Rates_Of_Change")) {
+  file.rename("Rates_Of_Change", "scripts/Rates_Of_Change")
+}
+
+# Move Spring24_Workshop into scripts
+if (dir.exists("Spring24_Workshop")) {
+  file.rename("Spring24_Workshop", "scripts/Spring24_Workshop")
+}
+
+# Move job_market_data into data/filtered
+if (dir.exists("job_market_data")) {
+  file.rename("job_market_data", "data/filtered/job_market_data")
+}
+
+# Optional: log a message if a folder wasn’t found
+check_and_message <- function(path) {
+  if (!file.exists(path)) {
+    message("Warning: ", path, " not found.")
+  }
+}
+
+lapply(c("CAEMP25N", "Rates_Of_Change", "Spring24_Workshop", "job_market_data"), check_and_message)
+
+
+
+# Repo organization script (round 2)
+# ----------------------------------
+
+# Ensure archive/misc exists
+dir.create("archive/misc", recursive = TRUE, showWarnings = FALSE)
+
+# 1. Move hist_files and notebooks into archive/misc
+if (dir.exists("hist_files")) {
+  file.rename("hist_files", "archive/misc/hist_files")
+}
+if (dir.exists("notebooks")) {
+  file.rename("notebooks", "archive/misc/notebooks")
+}
+
+# 2. Move states_shapefile into figures/
+if (dir.exists("states_shapefile")) {
+  dir.create("figures/states_shapefile", recursive = TRUE, showWarnings = FALSE)
+  file.rename("states_shapefile", "figures/states_shapefile")
+}
+
+# 3. Move reports into output/reports
+if (dir.exists("reports")) {
+  dir.create("output/reports", recursive = TRUE, showWarnings = FALSE)
+  file.rename("reports", "output/reports")
+}
+
+# 4. Handle plot_pics
+if (dir.exists("plot_pics")) {
+  # Move .svg into figures/
+  svgs <- list.files("plot_pics", pattern = "\\.svg$", full.names = TRUE)
+  if (length(svgs) > 0) {
+    file.copy(svgs, "figures", overwrite = TRUE)
+  }
+  
+  # Move .py into scripts/
+  pys <- list.files("plot_pics", pattern = "\\.py$", full.names = TRUE)
+  if (length(pys) > 0) {
+    file.copy(pys, "scripts", overwrite = TRUE)
+  }
+  
+  # Remove original folder if empty
+  unlink("plot_pics", recursive = TRUE, force = TRUE)
+}
+
+# Repo organization script (round 3)
+# ----------------------------------
+
+# 1. Move reports into archive/reports (instead of output)
+if (dir.exists("reports")) {
+  dir.create("archive/reports", recursive = TRUE, showWarnings = FALSE)
+  file.rename("reports", "archive/reports")
+}
+
+# 2. Move repo_audit safely into archive/misc
+if (dir.exists("repo_audit")) {
+  dir.create("archive/misc", recursive = TRUE, showWarnings = FALSE)
+  
+  # Copy contents first for safety
+  files_to_copy <- list.files("repo_audit", full.names = TRUE, recursive = TRUE)
+  for (f in files_to_copy) {
+    dest <- file.path("archive/misc/repo_audit", basename(f))
+    dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
+    file.copy(f, dest, overwrite = TRUE)
+  }
+  
+  # Optionally: remove original folder (uncomment when ready)
+  # unlink("repo_audit", recursive = TRUE, force = TRUE)
+}
+
+# Repo organization script (round 3 - with delete)
+# ----------------------------------
+
+# Repo organization script (round 3 - true move)
+# ----------------------------------
+
+# 1. Move reports into archive/reports
+if (dir.exists("reports")) {
+  dir.create("archive", recursive = TRUE, showWarnings = FALSE)
+  file.rename("reports", "archive/reports")
+}
+
+# 2. Move repo_audit into archive/misc/repo_audit (true move)
+if (dir.exists("repo_audit")) {
+  dir.create("archive/misc", recursive = TRUE, showWarnings = FALSE)
+  file.rename("repo_audit", "archive/misc/repo_audit")
+}
