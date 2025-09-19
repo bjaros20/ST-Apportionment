@@ -14,11 +14,6 @@ This folder replicates the synthetic difference-in-differences (sDiD) analysis o
   - Produces point estimates, confidence intervals, t-statistics, p-values.
   - Generates plots for each treated state.
 
-## Output
-- `output/` (to be populated when the script is run)  
-  - `*_sDiD_real_log_nci_short_run.png` – per-state short-run estimates.  
-  - `*_sDiD_real_log_nci_long_run.png` – per-state long-run estimates.  
-
 ## Results in Paper
 - Tables 11–13 (Synthetic DID estimates).  
 - Appendix figures: per-state short-run and long-run plots, Tables 17-21.
