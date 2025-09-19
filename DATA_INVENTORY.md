@@ -71,24 +71,19 @@ This document links each section of the paper to the underlying data files and s
 
 ## Section 7.3 – Synthetic DID
 - **Data files:**
-  - `data/raw/corp_income_tax_collections.csv`  
-  - `data/raw/corp_tax_rates.csv`
+  - analysis/7.3_synthetic_did/data/real_log_nci.csv – state-level log of real taxable corporate income (base dataset for all sDiD analyses)
 - **Scripts:**
-  - `analysis/7.3_synthetic_did/scripts/loop_sDiD.R`
-  - `analysis/7.3_synthetic_did/scripts/pipeline_bootstrap_sDiD.R`
-  - `analysis/7.3_synthetic_did/scripts/retroactive_sDiD.R`
-  - `analysis/7.3_synthetic_did/scripts/SynDiD.R`
+analysis/7.3_synthetic_did/scripts/log_nci.R – runs sequential cohort filtering, synthetic DID (short- and long-run), and generates per-state plots
 - **Results in paper:**
-  - Tables 11–13 (Synthetic DID estimates)
-  - Figures in appendix (online)
+Tables 11–13 (Synthetic DID estimates)
+Appendix: per-state short-run and long-run plots, Tables 17–21
 
 ---
 
 ## Section 7.4 – Non-Corporate Income
 - **Data files:**
-  - `data/raw/non_corp_tax_collections.csv` (FRED total minus corporate tax)
-  - `data/raw/state_population.csv`
+- analysis/7.4_non_corporate_income/data/real_NCI_cap.csv – non-corporate income tax revenue per capita, derived from naive_ci.csv
 - **Scripts:**
-  - `analysis/7.4_noncorp_income/scripts/noncorp_did.R`
+  - analysis/7.4_non_corporate_income/scripts/pe_nonCI_SR_LR.R – constructs NCI per capita dataset, runs sDiD (short- and long-run), and saves estimates/plots
 - **Results in paper:**
-  - Tables 22–24 (Non-corporate tax estimates)
+  - Tables 22–24 (Synthetic DID estimates for non-corporate tax revenue)
