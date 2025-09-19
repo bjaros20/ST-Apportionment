@@ -1,4 +1,4 @@
-# Single Sales Factor Apportionment (SSFA) Project
+# Single Sales Factor Apportionment Project
 
 This repository contains replication materials for  
 **“The Impact of Single Sales Factor Apportionment on State Tax Revenues: Short- and Long-Run Effects”** (2025).
