@@ -1,0 +1,64 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+entry=none,label=none,
+note{}={* p \num{< 0.1}, ** p \num{< 0.05}, *** p \num{< 0.01}},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]Q[]Q[]Q[]},
+hline{2}={1-6}{solid, black, 0.05em},
+hline{32}={1-6}{solid, black, 0.05em},
+hline{1}={1-6}{solid, black, 0.1em},
+hline{43}={1-6}{solid, black, 0.1em},
+column{2-6}={}{halign=c},
+column{1}={}{halign=l},
+}                     %% tabularray inner close
+& TWFE
+(Clustered) & TWFE
+(Homo) & Year FE Only
+(Clustered) & Year FE Only
+(Homo) & State Trends
+(Clustered) \\
+PostTreatment & \num{-0.343} & \num{-0.343}*** & \num{0.057} & \num{0.057} & \num{-0.403}** \\
+& (\num{0.226}) & (\num{0.068}) & (\num{0.487}) & (\num{0.205}) & (\num{0.164}) \\
+state\_trend × factor(State\_Acronym)AZ &  &  &  &  & \num{0.041}*** \\
+&  &  &  &  & (\num{0.000}) \\
+state\_trend × factor(State\_Acronym)CT &  &  &  &  & \num{-0.034}*** \\
+&  &  &  &  & (\num{0.009}) \\
+state\_trend × factor(State\_Acronym)DE &  &  &  &  & \num{-0.008} \\
+&  &  &  &  & (\num{0.009}) \\
+state\_trend × factor(State\_Acronym)IN &  &  &  &  & \num{-0.059}*** \\
+&  &  &  &  & (\num{0.000}) \\
+state\_trend × factor(State\_Acronym)KY &  &  &  &  & \num{0.012} \\
+&  &  &  &  & (\num{0.009}) \\
+state\_trend × factor(State\_Acronym)LA &  &  &  &  & \num{-0.028}*** \\
+&  &  &  &  & (\num{0.009}) \\
+state\_trend × factor(State\_Acronym)MD &  &  &  &  & \num{0.011} \\
+&  &  &  &  & (\num{0.009}) \\
+state\_trend × factor(State\_Acronym)ME &  &  &  &  & \num{0.028}*** \\
+&  &  &  &  & (\num{0.000}) \\
+state\_trend × factor(State\_Acronym)MN &  &  &  &  & \num{0.014}*** \\
+&  &  &  &  & (\num{0.000}) \\
+state\_trend × factor(State\_Acronym)NC &  &  &  &  & \num{-0.006} \\
+&  &  &  &  & (\num{0.009}) \\
+state\_trend × factor(State\_Acronym)ND &  &  &  &  & \num{0.050}*** \\
+&  &  &  &  & (\num{0.009}) \\
+state\_trend × factor(State\_Acronym)NY &  &  &  &  & \num{0.003} \\
+&  &  &  &  & (\num{0.009}) \\
+state\_trend × factor(State\_Acronym)PA &  &  &  &  & \num{0.003}*** \\
+&  &  &  &  & (\num{0.000}) \\
+state\_trend × factor(State\_Acronym)RI &  &  &  &  & \num{-0.002} \\
+&  &  &  &  & (\num{0.009}) \\
+Num.Obs. & \num{375} & \num{375} & \num{375} & \num{375} & \num{375} \\
+R2 & \num{0.931} & \num{0.931} & \num{0.028} & \num{0.028} & \num{0.963} \\
+R2 Adj. & \num{0.923} & \num{0.923} & \num{-0.042} & \num{-0.042} & \num{0.957} \\
+R2 Within & \num{0.071} & \num{0.071} & \num{0.000} & \num{0.000} & \num{0.507} \\
+R2 Within Adj. & \num{0.068} & \num{0.068} & \num{-0.003} & \num{-0.003} & \num{0.484} \\
+AIC & \num{198.7} & \num{198.7} & \num{1162.0} & \num{1162.0} & \num{-11.0} \\
+BIC & \num{355.8} & \num{355.8} & \num{1264.1} & \num{1264.1} & \num{201.1} \\
+RMSE & \num{0.28} & \num{0.28} & \num{1.06} & \num{1.06} & \num{0.21} \\
+Std.Errors & by: State\_Acronym & IID & by: State\_Acronym & IID & by: State\_Acronym \\
+FE: year & X & X & X & X & X \\
+FE: State\_Acronym & X & X &  &  & X \\
+\end{talltblr}
+\end{table}
